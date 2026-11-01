@@ -1,0 +1,1619 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>DayRank</title>
+<meta name="description" content="Daily and monthly life reviews, statistics and journal.">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="DayRank">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" id="theme-color" content="#0f1013">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&display=swap">
+<style>
+/* Layout: sidebar + scrolling main on desktop; bottom tab bar on phones. Serif page titles for the journal feel, sans UI, mono numerals. */
+:root{
+  --bg:#f4f5f7; --surface:#ffffff; --surface-2:#eceef2; --fg:#16181d; --muted:#5d6370; --border:#dfe2e8;
+  --accent:#4f5bd5; --accent-fg:#ffffff; --mo:#b8741a;
+  --s0:#e4e6eb; --s1:#e5484d; --s2:#ee8436; --s3:#e3b225; --s4:#7cc265; --s5:#24955a;
+  --c1:#5b6cff; --c2:#ff7a59; --c3:#20b486; --c4:#e9a23b; --c5:#c25bd8; --c6:#2fa8d8; --c7:#e5577f; --c8:#8a9a2c;
+  --r:14px;
+  --ui:"Geist",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --num:"Geist Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --serif:"Newsreader",Georgia,"Times New Roman",serif;
+  --shadow:0 1px 2px rgb(16 18 24 / .05),0 6px 20px rgb(16 18 24 / .05);
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1013; --surface:#17191e; --surface-2:#21242b; --fg:#eceef2; --muted:#959cab; --border:#2b2f38;
+  --accent:#8b93ff; --accent-fg:#0f1013; --mo:#f0b45a;
+  --s0:#262931; --s1:#f0565b; --s2:#f39a52; --s3:#ecc443; --s4:#8ed477; --s5:#3cae6c;
+  --shadow:0 1px 2px rgb(0 0 0 / .3),0 6px 20px rgb(0 0 0 / .25); color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#0f1013; --surface:#17191e; --surface-2:#21242b; --fg:#eceef2; --muted:#959cab; --border:#2b2f38;
+  --accent:#8b93ff; --accent-fg:#0f1013; --mo:#f0b45a;
+  --s0:#262931; --s1:#f0565b; --s2:#f39a52; --s3:#ecc443; --s4:#8ed477; --s5:#3cae6c;
+  --shadow:0 1px 2px rgb(0 0 0 / .3),0 6px 20px rgb(0 0 0 / .25); color-scheme:dark;
+}
+*{box-sizing:border-box}
+:root{color-scheme:light}
+body{margin:0;-webkit-tap-highlight-color:transparent;overscroll-behavior-y:none}
+[hidden]{display:none!important}
+img{max-width:100%}
+button,.chip,.nav a,.tabbar a{-webkit-user-select:none;user-select:none;touch-action:manipulation}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--bg)}
+html{font-size:15px}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--ui);font-size:1rem;line-height:1.5;-webkit-font-smoothing:antialiased}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+a{color:var(--accent)}
+.num{font-family:var(--num);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.muted{color:var(--muted)}
+.small{font-size:.8rem}
+.tiny{font-size:.72rem}
+
+/* shell */
+.app{display:grid;grid-template-columns:236px minmax(0,1fr);min-height:100%}
+.side{position:sticky;top:0;height:100vh;height:100dvh;display:flex;flex-direction:column;gap:.25rem;padding:calc(1.25rem + env(safe-area-inset-top,0px)) .75rem 1rem max(.75rem,env(safe-area-inset-left,0px));border-right:1px solid var(--border);background:var(--bg)}
+.brand{display:flex;align-items:center;gap:.6rem;padding:.25rem .6rem 1.1rem;font-weight:650;letter-spacing:-.01em;font-size:1.05rem}
+.brand-mark{width:26px;height:26px;border-radius:8px;background:var(--accent);display:grid;place-items:center;color:var(--accent-fg)}
+.nav{display:flex;flex-direction:column;gap:2px}
+.nav a{display:flex;align-items:center;gap:.7rem;padding:.5rem .65rem;border-radius:calc(var(--r)*.6);color:var(--muted);text-decoration:none;font-weight:500;font-size:.92rem}
+.nav a:hover{background:var(--surface-2);color:var(--fg)}
+.nav a[aria-current="page"]{background:var(--surface);color:var(--fg);box-shadow:inset 0 0 0 1px var(--border)}
+.nav svg{width:18px;height:18px;flex:none}
+.nav-sep{height:1px;background:var(--border);margin:.6rem .6rem}
+.side-foot{margin-top:auto;padding:.6rem;font-size:.75rem;color:var(--muted);display:flex;align-items:center;gap:.45rem}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--s4);flex:none}
+.dot.warn{background:var(--s3)} .dot.off{background:var(--muted)}
+.main{min-width:0;padding-block:calc(1.75rem + env(safe-area-inset-top,0px)) 5rem;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1120px;margin:0 auto;display:flex;flex-direction:column;gap:1.25rem}
+.tabbar{display:none}
+@media (min-width:861px){.main{padding-left:2rem;padding-right:max(2rem,env(safe-area-inset-right,0px))}}
+@media (max-width:860px){
+  .app{grid-template-columns:minmax(0,1fr)}
+  .side{display:none}
+  .main{padding-block:calc(1rem + env(safe-area-inset-top,0px)) calc(6rem + env(safe-area-inset-bottom,0px))}
+  .tabbar{display:grid;grid-template-columns:repeat(5,1fr);position:fixed;left:0;right:0;bottom:0;z-index:20;background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--border);padding:.35rem max(8px,env(safe-area-inset-right,0px)) calc(.35rem + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px))}
+  .tabbar a,.tabbar button{display:flex;flex-direction:column;align-items:center;gap:2px;padding:.3rem 0;font-size:.68rem;color:var(--muted);text-decoration:none;background:none;border:0;font-weight:500}
+  .tabbar svg{width:21px;height:21px}
+  .tabbar [aria-current="page"]{color:var(--accent)}
+}
+
+/* page head */
+.head{display:flex;align-items:flex-end;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+.head h1{font-family:var(--serif);font-weight:500;font-size:2rem;line-height:1.1;letter-spacing:-.015em;margin:0;text-wrap:balance}
+.head p{margin:.3rem 0 0;color:var(--muted)}
+.head-actions{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
+h2{font-size:1rem;font-weight:600;margin:0;letter-spacing:-.005em}
+h3{font-size:.8rem;font-weight:600;margin:0;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.section-title{display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap;margin-bottom:.9rem}
+
+/* cards */
+.card{background:var(--surface);border-radius:var(--r);padding:1.15rem 1.25rem;min-width:0}
+[data-card="elevated"] .card{box-shadow:var(--shadow);border:1px solid color-mix(in srgb,var(--border) 55%,transparent)}
+[data-card="outlined"] .card{border:1px solid var(--border)}
+[data-card="flat"] .card{background:var(--surface);border:1px solid transparent}
+[data-density="compact"] .card{padding:.85rem .95rem}
+[data-density="compact"] .wrap{gap:.9rem}
+.grid{display:grid;gap:1rem;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr))}
+[data-density="compact"] .grid{gap:.75rem}
+.grid .wide{grid-column:1/-1}
+.row{display:flex;gap:.75rem;align-items:center;flex-wrap:wrap}
+.between{justify-content:space-between}
+.stack{display:flex;flex-direction:column;gap:.75rem}
+.tiles{display:grid;gap:.75rem;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr))}
+.tile{background:var(--surface);border-radius:var(--r);padding:.9rem 1rem;min-width:0}
+[data-card="elevated"] .tile{box-shadow:var(--shadow);border:1px solid color-mix(in srgb,var(--border) 55%,transparent)}
+[data-card="outlined"] .tile,[data-card="flat"] .tile{border:1px solid var(--border)}
+[data-card="flat"] .tile{border-color:transparent}
+.tile .label{font-size:.75rem;color:var(--muted);font-weight:500}
+.tile .value{font-family:var(--num);font-size:1.6rem;font-weight:500;letter-spacing:-.03em;line-height:1.2;margin-top:.15rem}
+.tile .sub{font-size:.75rem;color:var(--muted);margin-top:.15rem}
+.big{font-family:var(--num);font-size:2.4rem;font-weight:500;letter-spacing:-.04em;line-height:1}
+
+/* controls */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.4rem;min-height:2.2rem;padding:0 .85rem;border-radius:calc(var(--r)*.6);border:1px solid var(--border);background:var(--surface);color:var(--fg);font-weight:500;font-size:.875rem;line-height:1;white-space:nowrap;text-decoration:none}
+.btn:hover{background:var(--surface-2)}
+.btn.primary{background:var(--accent);color:var(--accent-fg);border-color:transparent}
+.btn.primary:hover{filter:brightness(1.06);background:var(--accent)}
+.btn.ghost{background:transparent;border-color:transparent;color:var(--muted)}
+.btn.ghost:hover{background:var(--surface-2);color:var(--fg)}
+.btn.danger{color:var(--s1)}
+.btn.sm{min-height:1.85rem;padding:0 .6rem;font-size:.8rem}
+.btn.icon{padding:0;width:2.2rem}
+.btn[disabled]{opacity:.45;cursor:default}
+.btn svg{width:16px;height:16px}
+.seg{display:inline-flex;background:var(--surface-2);border-radius:calc(var(--r)*.6);padding:3px;gap:2px;flex-wrap:wrap}
+.seg button{border:0;background:transparent;padding:.35rem .7rem;border-radius:calc(var(--r)*.45);font-size:.82rem;font-weight:500;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--fg);box-shadow:0 1px 2px rgb(0 0 0 / .08)}
+.chip{display:inline-flex;align-items:center;gap:.3rem;padding:.2rem .6rem;border-radius:999px;border:1px solid var(--border);background:var(--surface);font-size:.78rem;font-weight:500;color:var(--muted);line-height:1.4}
+button.chip:hover{color:var(--fg)}
+.chip[aria-pressed="true"]{background:color-mix(in srgb,var(--accent) 14%,var(--surface));border-color:color-mix(in srgb,var(--accent) 45%,var(--border));color:var(--fg)}
+.chip .sw{width:8px;height:8px;border-radius:50%}
+.chips{display:flex;flex-wrap:wrap;gap:.4rem}
+.pill{display:inline-flex;align-items:center;justify-content:center;min-width:2.6rem;padding:.12rem .45rem;border-radius:999px;font-family:var(--num);font-size:.8rem;font-weight:600}
+.delta{font-family:var(--num);font-size:.78rem;font-weight:500;padding:.08rem .4rem;border-radius:6px;white-space:nowrap}
+.delta.up{color:var(--s5);background:color-mix(in srgb,var(--s5) 12%,transparent)}
+.delta.down{color:var(--s1);background:color-mix(in srgb,var(--s1) 12%,transparent)}
+.delta.flat{color:var(--muted);background:var(--surface-2)}
+.tag-daily,.tag-monthly{display:inline-flex;align-items:center;gap:.35rem;font-size:.7rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase}
+.tag-daily{color:var(--accent)}
+.tag-monthly{color:var(--mo)}
+.tag-daily::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.tag-monthly::before{content:"";width:7px;height:7px;transform:rotate(45deg);background:currentColor}
+input[type=text],input[type=search],input[type=date],input[type=month],textarea,select{background:var(--surface);border:1px solid var(--border);border-radius:calc(var(--r)*.55);padding:.5rem .7rem;font-size:max(16px,.9rem);width:100%;min-width:0}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 20%,transparent)}
+textarea{resize:vertical;min-height:4.2rem;line-height:1.5}
+textarea.journal{font-family:var(--serif);font-size:1.05rem;min-height:9rem}
+label.field{display:flex;flex-direction:column;gap:.35rem;font-size:.8rem;font-weight:500;color:var(--muted);min-width:0}
+input[type=range]{width:100%;accent-color:var(--accent)}
+input[type=color]{width:2.4rem;height:2.2rem;padding:2px;border:1px solid var(--border);border-radius:8px;background:var(--surface)}
+
+/* rating */
+.rate-row{display:grid;grid-template-columns:minmax(0,1fr);gap:.5rem;padding:.85rem 0;border-top:1px solid var(--border)}
+.rate-row:first-child{border-top:0;padding-top:0}
+.rate-top{display:flex;justify-content:space-between;align-items:baseline;gap:.75rem}
+.rate-name{font-weight:600}
+.rate-q{font-size:.8rem;color:var(--muted)}
+.rate-val{font-family:var(--num);font-size:1.15rem;font-weight:600;min-width:3.4rem;text-align:right}
+.rate{display:flex;gap:4px}
+.rate button{flex:1;min-width:0;height:2.5rem;border:0;border-radius:calc(var(--r)*.45);background:var(--surface-2);font-family:var(--num);font-size:.85rem;font-weight:500;color:var(--muted);transition:background .15s,color .15s,transform .1s}
+.rate button:hover{color:var(--fg);transform:translateY(-1px)}
+.rate button:active{transform:scale(.96)}
+.rate-100{display:flex;gap:.6rem;align-items:center}
+
+/* ring */
+.ring{position:relative;display:grid;place-items:center;flex:none}
+.ring svg{display:block;transform:rotate(-90deg)}
+.ring .arc{transition:stroke-dashoffset .5s cubic-bezier(.3,.7,.2,1),stroke .3s}
+.ring-in{position:absolute;inset:0;display:grid;place-items:center;text-align:center}
+.ring-val{font-family:var(--num);font-weight:500;letter-spacing:-.05em;line-height:1}
+.ring-cap{font-size:.7rem;color:var(--muted);margin-top:.2rem}
+
+/* review */
+.review-top{display:grid;grid-template-columns:auto minmax(0,1fr);gap:1.75rem;align-items:start}
+.score-side{display:flex;flex-direction:column;align-items:center;gap:.6rem;position:sticky;top:1.5rem}
+@media (max-width:700px){.review-top{grid-template-columns:minmax(0,1fr)}.score-side{position:static;flex-direction:row;justify-content:flex-start;gap:1rem}}
+.reflect-grid{display:grid;gap:.9rem;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr))}
+.datebar{display:flex;align-items:center;gap:.4rem;flex-wrap:wrap}
+.datebar .when{font-family:var(--serif);font-size:2rem;font-weight:500;letter-spacing:-.015em;line-height:1.1;margin:0 .3rem}
+.save-state{font-size:.78rem;color:var(--muted);display:inline-flex;align-items:center;gap:.35rem}
+.missed{display:flex;gap:.4rem;flex-wrap:wrap;align-items:center}
+.cat-card{padding:1rem 1.1rem;border-radius:var(--r);background:var(--surface);border:1px solid var(--border)}
+details.more summary{cursor:pointer;font-size:.82rem;color:var(--muted);font-weight:500;list-style:none;display:inline-flex;gap:.3rem;align-items:center;margin-top:.5rem}
+details.more summary::-webkit-details-marker{display:none}
+details.more summary::before{content:"+";font-family:var(--num)}
+details.more[open] summary::before{content:"−"}
+
+/* lists */
+.kv{display:flex;justify-content:space-between;align-items:center;gap:.75rem;padding:.45rem 0;border-top:1px solid var(--border);font-size:.9rem}
+.kv:first-child{border-top:0}
+.kv .k{color:var(--muted);min-width:0}
+.bar{height:6px;border-radius:3px;background:var(--surface-2);overflow:hidden;flex:1;min-width:40px}
+.bar>i{display:block;height:100%;border-radius:3px}
+.minibars{display:flex;gap:4px;align-items:flex-end;height:46px}
+.minibars>div{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;height:100%;justify-content:flex-end;min-width:0}
+.minibars i{display:block;width:100%;border-radius:3px;min-height:3px}
+.minibars i.none{background:transparent;border:1px dashed var(--border);height:100%!important}
+.minibars span{font-size:.62rem;color:var(--muted)}
+
+/* charts */
+.chart{position:relative;width:100%;min-height:120px}
+.chart svg{display:block;overflow:visible}
+.chart text{fill:var(--muted);font-family:var(--ui);font-size:11px}
+.chart .grid-l{stroke:var(--border);stroke-width:1}
+.chart .guide{stroke:var(--muted);stroke-width:1;stroke-dasharray:3 3}
+.empty-chart{display:grid;place-items:center;min-height:160px;color:var(--muted);font-size:.85rem;border:1px dashed var(--border);border-radius:var(--r);text-align:center;padding:1rem}
+#tip{position:fixed;z-index:60;pointer-events:none;background:var(--fg);color:var(--bg);padding:.45rem .6rem;border-radius:8px;font-size:.78rem;line-height:1.45;box-shadow:0 6px 20px rgb(0 0 0 / .2);max-width:240px}
+#tip b{font-weight:600}
+#tip .tr{display:flex;align-items:center;gap:.4rem}
+#tip .tr i{width:8px;height:8px;border-radius:50%;flex:none}
+.legend{display:flex;flex-wrap:wrap;gap:.9rem;align-items:center;font-size:.75rem;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:.35rem}
+.legend i{width:11px;height:11px;border-radius:3px;display:inline-block}
+.hscroll{overflow-x:auto;padding-bottom:.25rem}
+.hm rect.c{rx:2.5px;cursor:pointer}
+.h0{fill:var(--surface-2);stroke:var(--border);stroke-width:1;stroke-dasharray:2 2}
+.h1{fill:var(--s1)}.h2{fill:var(--s2)}.h3{fill:var(--s3)}.h4{fill:var(--s4)}.h5{fill:var(--s5)}
+.hf{fill:transparent;stroke:var(--border);stroke-width:1;opacity:.5}
+.hn{fill:var(--surface-2);stroke:var(--muted);stroke-width:1}
+.hm rect.sel{stroke:var(--fg);stroke-width:2;stroke-dasharray:none}
+.lg0{background:var(--surface-2);border:1px dashed var(--border)}
+.lg1{background:var(--s1)}.lg2{background:var(--s2)}.lg3{background:var(--s3)}.lg4{background:var(--s4)}.lg5{background:var(--s5)}
+.mgrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}
+.mgrid .wd{font-size:.7rem;color:var(--muted);text-align:center;padding-bottom:.2rem;font-weight:500}
+.mday{aspect-ratio:1/1;max-width:100%;border-radius:calc(var(--r)*.5);border:1px solid var(--border);background:var(--surface);display:flex;flex-direction:column;justify-content:space-between;padding:.3rem .4rem;font-size:.75rem;text-align:left;min-width:0}
+.mday .n{font-weight:500}
+.mday .s{font-family:var(--num);font-weight:600;font-size:.82rem;align-self:flex-end}
+.mday.empty{border-style:dashed;color:var(--muted)}
+.mday.out{visibility:hidden}
+.mday.sel{outline:2px solid var(--fg);outline-offset:1px}
+.mday.today .n{color:var(--accent);font-weight:700}
+.mstrip{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:.5rem}
+.mcell{border:1px solid var(--border);border-radius:calc(var(--r)*.6);padding:.5rem .6rem;background:var(--surface);text-align:left;display:flex;flex-direction:column;gap:.15rem}
+.mcell .m{font-size:.78rem;font-weight:600}
+.mcell .v{font-family:var(--num);font-size:.85rem}
+.mcell.done{border-color:color-mix(in srgb,var(--mo) 55%,var(--border))}
+.mcell.done .m::after{content:"";display:inline-block;width:6px;height:6px;transform:rotate(45deg);background:var(--mo);margin-left:.4rem;vertical-align:middle}
+
+/* detail sheet */
+#sheet{position:fixed;inset:0;z-index:50;display:flex;justify-content:flex-end;background:rgb(0 0 0 / .35)}
+#sheet[hidden]{display:none!important}
+.sheet-panel{width:min(460px,100%);height:100%;overflow:auto;background:var(--bg);padding:1.25rem max(1.25rem,env(safe-area-inset-right,0px)) calc(1.5rem + env(safe-area-inset-bottom,0px)) 1.25rem;padding-top:calc(1.25rem + env(safe-area-inset-top,0px));display:flex;flex-direction:column;gap:1rem;animation:slide .22s ease}
+@keyframes slide{from{transform:translateX(24px);opacity:.4}}
+@media (max-width:600px){#sheet{align-items:flex-end}.sheet-panel{height:auto;max-height:88%;border-radius:18px 18px 0 0;padding-left:max(1.1rem,env(safe-area-inset-left,0px))}@keyframes slide{from{transform:translateY(30px);opacity:.4}}}
+.qa{display:flex;flex-direction:column;gap:.2rem}
+.qa .q{font-size:.75rem;font-weight:600;color:var(--muted)}
+.qa .a{font-family:var(--serif);font-size:1.02rem;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere}
+mark{background:color-mix(in srgb,var(--s3) 45%,transparent);color:inherit;border-radius:3px;padding:0 1px}
+
+/* journal */
+.entry{display:flex;flex-direction:column;gap:.75rem}
+.entry-head{display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap}
+.entry-date{font-family:var(--serif);font-size:1.25rem;font-weight:500}
+.filters{display:grid;gap:.75rem;grid-template-columns:minmax(0,2fr) repeat(2,minmax(0,1fr));align-items:end}
+@media (max-width:700px){.filters{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.filters .f-search{grid-column:1/-1}}
+.month-sep{font-family:var(--serif);font-size:1.05rem;color:var(--muted);margin:.5rem 0 -.25rem}
+
+/* insights / records */
+.insight{display:flex;flex-direction:column;gap:.45rem}
+.insight .kind{font-size:.7rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:.4rem}
+.insight .kind i{width:7px;height:7px;border-radius:50%;background:var(--muted)}
+.insight.up .kind i{background:var(--s5)}.insight.down .kind i{background:var(--s1)}.insight.info .kind i{background:var(--accent)}
+.insight .t{font-size:1.02rem;font-weight:500;line-height:1.45;text-wrap:pretty}
+.insight .d{font-size:.8rem;color:var(--muted)}
+.ms{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,130px),1fr));gap:.75rem}
+.ms-item{display:flex;flex-direction:column;align-items:center;gap:.4rem;padding:1rem .5rem;border-radius:var(--r);border:1px solid var(--border);text-align:center}
+.ms-item.got{border-color:color-mix(in srgb,var(--accent) 45%,var(--border));background:color-mix(in srgb,var(--accent) 7%,var(--surface))}
+.ms-item .n{font-family:var(--num);font-size:1.4rem;font-weight:500}
+
+/* dashboard edit */
+.w{position:relative}
+.w-edit{display:none}
+.dash-editing .w-edit{display:flex;align-items:center;justify-content:space-between;gap:.5rem;margin:-.25rem -.25rem .75rem;padding:.35rem .5rem;border-radius:calc(var(--r)*.5);background:var(--surface-2);font-size:.8rem;font-weight:600}
+.dash-editing .w{cursor:grab}
+.dash-editing .w.is-hidden{opacity:.45}
+.w.is-hidden{display:none}
+.dash-editing .w.is-hidden{display:block}
+.w.drag-over{outline:2px dashed var(--accent);outline-offset:3px}
+
+/* settings */
+.set-row{display:grid;grid-template-columns:minmax(0,220px) minmax(0,1fr);gap:1rem;padding:1rem 0;border-top:1px solid var(--border);align-items:center}
+.set-row:first-of-type{border-top:0}
+.set-row .lbl{font-weight:500}
+.set-row .lbl small{display:block;color:var(--muted);font-weight:400;font-size:.78rem}
+@media (max-width:700px){.set-row{grid-template-columns:minmax(0,1fr);gap:.5rem}}
+.themes{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:.6rem}
+.theme-btn{border:1px solid var(--border);border-radius:calc(var(--r)*.7);padding:.5rem;background:var(--surface);text-align:left;display:flex;flex-direction:column;gap:.45rem;font-size:.8rem;font-weight:500}
+.theme-btn[aria-pressed="true"]{outline:2px solid var(--accent);outline-offset:1px}
+.theme-sw{display:flex;height:34px;border-radius:7px;overflow:hidden;border:1px solid rgb(0 0 0 / .06)}
+.theme-sw i{flex:1}
+.swatches{display:flex;gap:.45rem;flex-wrap:wrap;align-items:center}
+.swatch{width:1.8rem;height:1.8rem;border-radius:50%;border:2px solid var(--surface);box-shadow:0 0 0 1px var(--border)}
+.swatch[aria-pressed="true"]{box-shadow:0 0 0 2px var(--fg)}
+.pal{display:flex;gap:3px}.pal i{width:14px;height:14px;border-radius:4px}
+.cat-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;gap:.5rem;align-items:center;padding:.5rem 0;border-top:1px solid var(--border)}
+.cat-row:first-child{border-top:0}
+.cat-row .mv{display:flex;flex-direction:column}
+.cat-row .mv button{border:0;background:none;color:var(--muted);padding:0 .3rem;line-height:1;font-size:.75rem;height:1.1rem}
+.cat-row .mv button:hover{color:var(--fg)}
+.cat-row .fields{display:grid;gap:.35rem;min-width:0}
+.cat-row select{width:auto}
+@media (max-width:560px){.cat-row{grid-template-columns:auto minmax(0,1fr)}.cat-row .end{grid-column:2;display:flex;gap:.4rem}}
+.cat-row .end{display:contents}
+@media (max-width:560px){.cat-row .end{display:flex}}
+
+/* misc */
+.banner{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;padding:.85rem 1.1rem;border-radius:var(--r);background:color-mix(in srgb,var(--accent) 10%,var(--surface));border:1px solid color-mix(in srgb,var(--accent) 30%,var(--border))}
+.banner.mo{background:color-mix(in srgb,var(--mo) 10%,var(--surface));border-color:color-mix(in srgb,var(--mo) 35%,var(--border))}
+.banner.warn{background:color-mix(in srgb,var(--s3) 14%,var(--surface));border-color:color-mix(in srgb,var(--s3) 40%,var(--border))}
+.banner b{font-weight:600}
+.empty{padding:2.5rem 1rem;text-align:center;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:.75rem}
+.empty h2{color:var(--fg);font-family:var(--serif);font-weight:500;font-size:1.4rem}
+#toasts{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(1.25rem + env(safe-area-inset-bottom,0px));z-index:70;display:flex;flex-direction:column;gap:.5rem;align-items:center;pointer-events:none;width:max-content;max-width:calc(100% - 32px)}
+@media (max-width:860px){#toasts{bottom:calc(5.2rem + env(safe-area-inset-bottom,0px))}}
+.toast{background:var(--fg);color:var(--bg);padding:.6rem .95rem;border-radius:10px;font-size:.85rem;box-shadow:0 8px 24px rgb(0 0 0 / .2);animation:pop .25s ease;display:flex;gap:.6rem;align-items:center}
+.toast.cel{background:var(--accent);color:var(--accent-fg)}
+@keyframes pop{from{transform:translateY(10px);opacity:0}}
+.loading{display:grid;place-items:center;min-height:50vh;color:var(--muted);gap:.75rem;text-align:center}
+.spin{width:22px;height:22px;border-radius:50%;border:2px solid var(--border);border-top-color:var(--accent);animation:sp 0.8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.more-sheet{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem}
+.more-sheet a{display:flex;flex-direction:column;align-items:center;gap:.35rem;padding:1rem .5rem;border-radius:var(--r);background:var(--surface);border:1px solid var(--border);color:var(--fg);text-decoration:none;font-size:.82rem;font-weight:500}
+.more-sheet svg{width:22px;height:22px;color:var(--accent)}
+.preview-box{display:grid;grid-template-columns:auto minmax(0,1fr);gap:1.25rem;align-items:center;padding:1rem;border-radius:var(--r);background:var(--bg);border:1px solid var(--border)}
+.confirm-inline{display:inline-flex;gap:.4rem;align-items:center;font-size:.82rem}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <aside class="side" id="side"></aside>
+  <main class="main"><div class="wrap" id="view"><div class="loading"><div class="spin"></div><div>Opening DayRank…</div></div></div></main>
+  <nav class="tabbar" id="tabbar"></nav>
+</div>
+<div id="sheet" hidden><div class="sheet-panel" id="sheet-panel" role="dialog" aria-modal="true"></div></div>
+<div id="tip" hidden></div>
+<div id="toasts" aria-live="polite"></div>
+<input type="file" id="import-file" accept=".json,application/json" hidden>
+
+<script>
+"use strict";
+/* ============ constants ============ */
+const DEF_DAILY = [
+  {id:"happiness",name:"Happiness",q:"How happy was I today?",of:10},
+  {id:"productivity",name:"Productivity",q:"How productive and accomplished was I today?",of:10},
+  {id:"mental",name:"Mental wellbeing",q:"How was my overall mental state today?",of:10},
+  {id:"physical",name:"Physical wellbeing",q:"How good did I feel physically today?",of:10}
+];
+const DEF_MONTHLY = [
+  ["happiness","Happiness","Happiness"],["productivity","Productivity","Productivity"],
+  ["fitness","Physical health and fitness","Fitness"],["mental","Mental wellbeing","Mental"],
+  ["social","Social life and relationships","Social"],["growth","Personal development and learning","Learning"],
+  ["discipline","Discipline and consistency","Discipline"],["academic","Academic / professional performance","Academic"],
+  ["sleep","Sleep and lifestyle","Sleep"],["satisfaction","Overall life satisfaction","Satisfaction"]
+].map(([id,name,short])=>({id,name,short,of:10}));
+const REFLECT_DAY = [["best","Best thing that happened today"],["better","What could have gone better?"],["grateful","Something I'm grateful for"],["memorable","A memorable moment"]];
+const REFLECT_MONTH = [["achievements","What were my biggest achievements this month?"],["best","What were the best moments?"],["struggled","What did I struggle with?"],["learned","What did I learn?"],["proud","What am I most proud of?"],["next","What do I want to accomplish next month?"]];
+const CAT_NOTES = [["why","Why this rating"],["improved","What improved"],["change","What I want to change"]];
+const DEF_TAGS = ["exciting","stressful","relaxing","productive","social","tired","focused","creative","exercise","family"];
+const MILESTONES = [7,30,100,365];
+const MONTH_MS = [1,6,12];
+const WIDGETS = {
+  today:{name:"Today",wide:true}, prompt:{name:"Monthly review reminder",wide:true},
+  week:{name:"This week"}, month:{name:"This month"}, year:{name:"This year"},
+  heat:{name:"Recent days",wide:true}, insights:{name:"Insights"}, streak:{name:"Streak and milestones"}
+};
+const THEMES = {
+  graphite:{name:"Graphite",light:{bg:"#f4f5f7",surface:"#ffffff",surface2:"#eceef2",fg:"#16181d",muted:"#5d6370",border:"#dfe2e8",accent:"#4f5bd5"},dark:{bg:"#0f1013",surface:"#17191e",surface2:"#21242b",fg:"#eceef2",muted:"#959cab",border:"#2b2f38",accent:"#8b93ff"}},
+  midnight:{name:"Midnight",prefers:"dark",light:{bg:"#eef0f8",surface:"#ffffff",surface2:"#e3e7f4",fg:"#141a33",muted:"#59607e",border:"#d5daeb",accent:"#3d4fd9"},dark:{bg:"#090c18",surface:"#10152a",surface2:"#19203b",fg:"#e7eaf6",muted:"#8d96b8",border:"#232c4b",accent:"#7d8bff"}},
+  ocean:{name:"Ocean",light:{bg:"#eef5f8",surface:"#ffffff",surface2:"#e0ecf2",fg:"#0f2530",muted:"#4f6d7c",border:"#d0e1e9",accent:"#0a7ea0"},dark:{bg:"#07141b",surface:"#0d1f28",surface2:"#142b36",fg:"#e1f0f5",muted:"#86a7b5",border:"#1c3644",accent:"#3cc0dc"}},
+  forest:{name:"Forest",light:{bg:"#f1f4ef",surface:"#ffffff",surface2:"#e4eadf",fg:"#18241a",muted:"#58695a",border:"#d6dfd1",accent:"#2c7a4c"},dark:{bg:"#0c120d",surface:"#131c15",surface2:"#1c271e",fg:"#e5eee4",muted:"#93a593",border:"#27342a",accent:"#5fc78d"}},
+  lavender:{name:"Lavender",light:{bg:"#f5f2fb",surface:"#ffffff",surface2:"#ebe5f6",fg:"#221a33",muted:"#685d7e",border:"#dfd7ee",accent:"#7556db"},dark:{bg:"#120f1a",surface:"#1a1625",surface2:"#251f34",fg:"#ece6f8",muted:"#a398bb",border:"#322a42",accent:"#b29dff"}},
+  minimal:{name:"Minimalist",light:{bg:"#ffffff",surface:"#ffffff",surface2:"#f2f2f2",fg:"#111111",muted:"#6b6b6b",border:"#e4e4e4",accent:"#111111"},dark:{bg:"#000000",surface:"#0c0c0c",surface2:"#171717",fg:"#f2f2f2",muted:"#8e8e8e",border:"#262626",accent:"#f2f2f2"}},
+  warm:{name:"Warm Neutral",light:{bg:"#f6f1ea",surface:"#fffdf9",surface2:"#efe7dc",fg:"#2a221b",muted:"#73655a",border:"#e4dacb",accent:"#a85d27"},dark:{bg:"#16120e",surface:"#1f1a15",surface2:"#2a231d",fg:"#f1e9de",muted:"#a99a88",border:"#362d25",accent:"#e39a5f"}},
+  classic:{name:"Classic Light",prefers:"light",light:{bg:"#f7f8fa",surface:"#ffffff",surface2:"#eef0f3",fg:"#1a1d23",muted:"#5f6672",border:"#e0e3e8",accent:"#2563eb"},dark:{bg:"#111318",surface:"#181b21",surface2:"#22262e",fg:"#eceef1",muted:"#959ba6",border:"#2c3038",accent:"#60a5fa"}}
+};
+const PALETTES = {
+  vivid:{name:"Vivid",c:["#5b6cff","#ff7a59","#20b486","#e9a23b","#c25bd8","#2fa8d8","#e5577f","#8a9a2c"]},
+  pastel:{name:"Soft",c:["#8396ff","#ff9f85","#5fcca6","#ecc06a","#cf95e2","#78c6e6","#ee8fae","#b3c06a"]},
+  earth:{name:"Earth",c:["#a86a3d","#5f8f6b","#c79a3a","#7a6aa8","#4f86a3","#b5534a","#8a8f45","#8a7a6c"]},
+  safe:{name:"Colour-blind safe",c:["#0072B2","#E69F00","#009E73","#CC79A7","#56B4E9","#D55E00","#C9B92E","#999999"]},
+  mono:{name:"Accent tones",c:null}
+};
+const SCORE_L = {s0:"#e4e6eb",s1:"#e5484d",s2:"#ee8436",s3:"#e3b225",s4:"#7cc265",s5:"#24955a"};
+const SCORE_D = {s0:"#262931",s1:"#f0565b",s2:"#f39a52",s3:"#ecc443",s4:"#8ed477",s5:"#3cae6c"};
+const BAND_NAMES = ["Not reviewed","Low","Below average","Average","Good","Excellent"];
+const ICONS = {
+  home:'<path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
+  pen:'<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/>',
+  moon:'<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/><path d="m12 12 1.2 2.4 2.6.4-1.9 1.8.5 2.6L12 18l-2.4 1.2.5-2.6-1.9-1.8 2.6-.4z"/>',
+  chart:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+  cal:'<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/><path d="M7 13h2M11 13h2M15 13h2M7 17h2M11 17h2"/>',
+  book:'<path d="M4 4h6a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H4z"/><path d="M20 4h-4a3 3 0 0 0-3 3v13a2 2 0 0 1 2-2h5z"/>',
+  spark:'<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/>',
+  trophy:'<path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H4a3 3 0 0 0 4 4M16 6h4a3 3 0 0 1-4 4M12 13v4M8 21h8M9 17h6"/>',
+  gear:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/>',
+  dots:'<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>',
+  left:'<path d="m15 18-6-6 6-6"/>', right:'<path d="m9 18 6-6-6-6"/>', x:'<path d="M6 6l12 12M18 6 6 18"/>',
+  check:'<path d="m5 12 5 5 9-10"/>', up:'<path d="m6 15 6-6 6 6"/>', down:'<path d="m6 9 6 6 6-6"/>'
+};
+const ico = (n, sw=1.8) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n]}</svg>`;
+const ROUTES = [
+  ["dashboard","Dashboard","home"],["review","Daily review","pen"],["month","Monthly review","moon"],
+  ["stats","Statistics","chart"],["calendar","Calendar","cal"],["journal","Journal","book"],
+  ["insights","Insights","spark"],["records","Records","trophy"],["prefs","Settings","gear"]
+];
+
+/* ============ utils ============ */
+const $ = (s, el=document) => el.querySelector(s);
+const $$ = (s, el=document) => [...el.querySelectorAll(s)];
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
+const pad = n => String(n).padStart(2,"0");
+const ymd = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const parse = k => { const [y,m,d] = k.split("-").map(Number); return new Date(y, m-1, d||1, 12); };
+const addDays = (k,n) => { const d = parse(k); d.setDate(d.getDate()+n); return ymd(d); };
+const daysBetween = (a,b) => Math.round((parse(b)-parse(a))/864e5);
+const addMonths = (mk,n) => { const [y,m] = mk.split("-").map(Number); const d = new Date(y, m-1+n, 1, 12); return `${d.getFullYear()}-${pad(d.getMonth()+1)}`; };
+const dim = mk => { const [y,m] = mk.split("-").map(Number); return new Date(y, m, 0).getDate(); };
+const MN = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const DN = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+const monthName = (mk, short) => { const m = +mk.slice(5,7)-1; return short ? MN[m].slice(0,3) : MN[m]; };
+const monthLabel = (mk, short) => `${monthName(mk, short)} ${mk.slice(0,4)}`;
+const fmtDay = (k, opt="long") => { const d = parse(k); if (opt==="short") return `${d.getDate()} ${MN[d.getMonth()].slice(0,3)}`; if (opt==="med") return `${DN[d.getDay()].slice(0,3)} ${d.getDate()} ${MN[d.getMonth()].slice(0,3)}`; return `${DN[d.getDay()]} ${d.getDate()} ${MN[d.getMonth()]}${d.getFullYear()!==new Date().getFullYear()?" "+d.getFullYear():""}`; };
+const f1 = v => v==null || isNaN(v) ? "—" : (Math.round(v*10)/10).toFixed(1);
+const avg = a => a.length ? a.reduce((s,x)=>s+x,0)/a.length : null;
+const norm = (v,of) => of===10 ? v : v/of*10;
+const band = s => s==null ? 0 : s<4 ? 1 : s<5.5 ? 2 : s<7 ? 3 : s<8.5 ? 4 : 5;
+const bandVar = s => `var(--s${band(s)})`;
+const onBand = b => (b===1||b===5) ? "#ffffff" : "#1a1a1a";
+const uid = () => Math.random().toString(36).slice(2,9);
+function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function hexToHsl(hex){let c=hex.replace("#","");if(c.length===3)c=c.split("").map(x=>x+x).join("");const r=parseInt(c.slice(0,2),16)/255,g=parseInt(c.slice(2,4),16)/255,b=parseInt(c.slice(4,6),16)/255;const mx=Math.max(r,g,b),mn=Math.min(r,g,b);let h=0,s=0,l=(mx+mn)/2;if(mx!==mn){const d=mx-mn;s=l>.5?d/(2-mx-mn):d/(mx+mn);h=mx===r?(g-b)/d+(g<b?6:0):mx===g?(b-r)/d+2:(r-g)/d+4;h*=60}return[h,s*100,l*100]}
+function hslToHex(h,s,l){s/=100;l/=100;const k=n=>(n+h/30)%12,a=s*Math.min(l,1-l),f=n=>l-a*Math.max(-1,Math.min(k(n)-3,Math.min(9-k(n),1)));return"#"+[f(0),f(8),f(4)].map(x=>Math.round(x*255).toString(16).padStart(2,"0")).join("")}
+function lum(hex){const [h,s,l]=hexToHsl(hex);let c=hex.replace("#","");const ch=i=>{let v=parseInt(c.slice(i,i+2),16)/255;return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4)};return .2126*ch(0)+.7152*ch(2)+.0722*ch(4)}
+
+/* ============ state ============ */
+const real = {days:{}, reviews:{}};
+let demo = null;
+const D = () => demo || real;
+let settings = defaultSettings();
+let ver = 0; const bump = () => { ver++; };
+const ui = {
+  route:"dashboard", dashEdit:false,
+  rv:{date:null}, mo:{mk:null},
+  st:{tab:"daily", range:"30", from:"", to:"", hide:new Set(), ma:true, moHide:new Set(), a:null, b:null},
+  cal:{view:"year", year:null, mk:null, sel:null},
+  jr:{q:"", type:"all", tags:new Set(), from:"", to:"", limit:40, confirm:null},
+  set:{tab:"appearance", erase:""},
+  confirmDel:false
+};
+
+function defaultSettings(){
+  return {
+    v:1, daily:DEF_DAILY.map(c=>({...c})), monthly:DEF_MONTHLY.map(c=>({...c})),
+    theme:"graphite", mode:"system", accent:null, custom:{light:{},dark:{}}, palette:"vivid",
+    radius:14, fontScale:1, cardStyle:"elevated", density:"comfortable",
+    weekStart:1, dayStart:4, tags:[...DEF_TAGS],
+    dash:{order:Object.keys(WIDGETS), hidden:[]}, seen:[], lastBackup:null
+  };
+}
+function mergeSettings(s){
+  const d = defaultSettings();
+  if (!s || typeof s !== "object") return d;
+  const o = {...d, ...JSON.parse(JSON.stringify(s))};
+  if (!Array.isArray(o.daily) || !o.daily.length) o.daily = d.daily;
+  if (!Array.isArray(o.monthly) || !o.monthly.length) o.monthly = d.monthly;
+  o.custom = {light:{...(o.custom?.light||{})}, dark:{...(o.custom?.dark||{})}};
+  o.dash = o.dash && Array.isArray(o.dash.order) ? o.dash : d.dash;
+  for (const k of Object.keys(WIDGETS)) if (!o.dash.order.includes(k)) o.dash.order.push(k);
+  o.dash.order = o.dash.order.filter(k => WIDGETS[k]);
+  if (!Array.isArray(o.dash.hidden)) o.dash.hidden = [];
+  if (!Array.isArray(o.tags)) o.tags = [...DEF_TAGS];
+  if (!Array.isArray(o.seen)) o.seen = [];
+  return o;
+}
+const activeDaily = () => settings.daily.filter(c=>!c.archived);
+const activeMonthly = () => settings.monthly.filter(c=>!c.archived);
+const catName = (list, id) => (list.find(c=>c.id===id)||{}).name || id;
+const catShort = (id) => { const c = settings.monthly.find(c=>c.id===id); return c ? (c.short || c.name.split(/[ /]/)[0]) : id; };
+
+function todayKey(){ const n = new Date(); if (n.getHours() < (settings.dayStart||0)) n.setDate(n.getDate()-1); return ymd(n); }
+function weekStartOf(k){ const d = parse(k); const diff = (d.getDay() - settings.weekStart + 7) % 7; return addDays(k, -diff); }
+
+/* scoring */
+function ratingMap(e){ const m = {}; for (const [id,v,of] of (e?.r||[])) if (typeof v==="number") m[id] = {v, of:of||10}; return m; }
+function scoreOf(e){ const r = (e?.r||[]).filter(x=>typeof x[1]==="number"); if (!r.length) return null; return avg(r.map(([,v,of])=>norm(v,of||10))); }
+function dayEmpty(d){ if (!d) return true; if ((d.r||[]).length) return false; if ((d.tags||[]).length) return false; for (const [k] of REFLECT_DAY) if ((d[k]||"").trim()) return false; return !(d.notes||"").trim(); }
+function reviewEmpty(rv){ if (!rv) return true; if ((rv.r||[]).length) return false; for (const v of Object.values(rv.q||{})) if ((v||"").trim()) return false; for (const n of Object.values(rv.notes||{})) for (const v of Object.values(n||{})) if ((v||"").trim()) return false; return true; }
+const hasReview = mk => !reviewEmpty(D().reviews[mk]);
+
+let _cache = {v:-1};
+function scored(){
+  if (_cache.v === ver) return _cache;
+  const all = Object.keys(D().days).sort();
+  const list = [], byKey = {};
+  for (const k of all){ const e = D().days[k]; const s = scoreOf(e); const rec = {key:k, e, s, rm:ratingMap(e)}; byKey[k] = rec; if (s!=null) list.push(rec); }
+  _cache = {v:ver, list, byKey, all};
+  return _cache;
+}
+const inRange = (from,to) => scored().list.filter(x => x.key>=from && x.key<=to);
+function agg(recs, cats){
+  const out = {n:recs.length, avg:avg(recs.map(r=>r.s)), cat:{}, hi:null, lo:null};
+  for (const r of recs){ if (!out.hi || r.s >= out.hi.s) out.hi = r; if (!out.lo || r.s < out.lo.s) out.lo = r; }
+  for (const c of cats) out.cat[c.id] = avg(recs.filter(r=>r.rm[c.id]).map(r=>norm(r.rm[c.id].v, r.rm[c.id].of)));
+  return out;
+}
+const monthRecs = mk => scored().list.filter(r => r.key.startsWith(mk));
+const monthScore = mk => scoreOf(D().reviews[mk]);
+function monthsWithDays(){ const s = new Set(scored().list.map(r=>r.key.slice(0,7))); return [...s].sort(); }
+
+function streaks(){
+  const keys = scored().list.map(r=>r.key);
+  let longest = 0, run = 0, prev = null, longEnd = null;
+  for (const k of keys){ run = (prev && daysBetween(prev,k)===1) ? run+1 : 1; if (run>longest){ longest=run; longEnd=k; } prev = k; }
+  const set = new Set(keys); const t = todayKey();
+  let cur = 0, k = set.has(t) ? t : addDays(t,-1);
+  while (set.has(k)){ cur++; k = addDays(k,-1); }
+  return {cur, longest, longEnd, total:keys.length};
+}
+
+/* ============ persistence (on this device) ============ */
+const LS_KEY = "dayrank.v1";
+const P = {ready:false, timer:null, status:"", persisted:false};
+function lsRead(){ try { const t = localStorage.getItem(LS_KEY); return t ? JSON.parse(t) : null; } catch { return null; } }
+function lsWrite(o){ try { localStorage.setItem(LS_KEY, JSON.stringify(o)); return true; } catch { return false; } }
+function clone(o){ return o==null ? o : JSON.parse(JSON.stringify(o)); }
+function setDay(key, d){
+  if (dayEmpty(d)) delete D().days[key]; else { d.at = Date.now(); D().days[key] = d; }
+  bump(); if (!demo) schedule();
+}
+function setReview(mk, rv){
+  if (reviewEmpty(rv)) delete D().reviews[mk]; else { rv.at = Date.now(); D().reviews[mk] = rv; }
+  bump(); if (!demo) schedule();
+}
+function saveSettings(){ schedule(); }
+function schedule(delay=300){ clearTimeout(P.timer); setStatus("saving"); P.timer = setTimeout(flush, delay); }
+function flush(){
+  P.timer = null;
+  const ok = lsWrite({settings, days:real.days, reviews:real.reviews});
+  setStatus(ok ? "saved" : "error");
+  if (!ok) toast("Couldn't save. The phone's storage for this app may be full. Export a backup from Settings → Data.");
+}
+function setStatus(s){ P.status = s; $$(".sync").forEach(el => el.innerHTML = statusHTML()); }
+function statusHTML(){
+  if (demo) return `<span class="dot warn"></span>Sample data, not saved`;
+  const m = {saving:["warn","Saving…"], saved:["","Saved on this phone"], error:["off","Last change didn't save"]};
+  const [cls, txt] = m[P.status] || ["","Saved on this phone"];
+  return `<span class="dot ${cls}"></span>${txt}`;
+}
+function boot(){
+  const saved = lsRead();
+  if (saved){ settings = mergeSettings(saved.settings); real.days = saved.days||{}; real.reviews = saved.reviews||{}; }
+  P.ready = true; bump(); applyTheme(); setStatus("saved"); route();
+  try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().then(v => { P.persisted = v; }); } catch {}
+  if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(()=>{});
+}
+
+/* ============ theme ============ */
+function effMode(){
+  if (settings.mode==="light" || settings.mode==="dark") return settings.mode;
+  const t = document.documentElement.getAttribute("data-theme");
+  if (t==="dark" || t==="light") return t;
+  return matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
+function paletteColors(){
+  const p = PALETTES[settings.palette] || PALETTES.vivid;
+  if (p.c) return p.c;
+  const [h,s] = hexToHsl(curAccent());
+  return [0,1,2,3,4,5,6,7].map(i => hslToHex((h + i*28) % 360, clamp(s,45,80), effMode()==="dark" ? 62 + (i%2)*8 : 44 + (i%2)*10));
+}
+function curAccent(){ const m = effMode(); return settings.accent || (THEMES[settings.theme]||THEMES.graphite)[m].accent; }
+function applyTheme(){
+  const m = effMode();
+  const th = {...(THEMES[settings.theme]||THEMES.graphite)[m]};
+  const cu = settings.custom?.[m] || {};
+  if (settings.accent) th.accent = settings.accent;
+  if (cu.bg) th.bg = cu.bg;
+  if (cu.card){ th.surface = cu.card; }
+  const st = document.documentElement.style;
+  const S = m==="dark" ? SCORE_D : SCORE_L;
+  const [h,s,l] = hexToHsl(th.accent);
+  const mo = hslToHex((h + 150) % 360, clamp(s, 55, 85), m==="dark" ? 64 : 42);
+  const vars = {"--bg":th.bg, "--surface":th.surface, "--surface-2":cu.card ? `color-mix(in srgb, ${th.surface} 93%, ${m==="dark"?"#ffffff":"#000000"})` : th.surface2, "--fg":th.fg, "--muted":th.muted, "--border":th.border,
+    "--accent":th.accent, "--accent-fg": lum(th.accent) > .45 ? "#111111" : "#ffffff", "--mo":mo,
+    "--r":settings.radius+"px", ...Object.fromEntries(Object.entries(S).map(([k,v])=>["--"+k,v])),
+    "--shadow": m==="dark" ? "0 1px 2px rgb(0 0 0 / .35),0 6px 20px rgb(0 0 0 / .25)" : "0 1px 2px rgb(16 18 24 / .05),0 6px 20px rgb(16 18 24 / .05)"};
+  paletteColors().forEach((c,i)=> vars["--c"+(i+1)] = c);
+  for (const [k,v] of Object.entries(vars)) st.setProperty(k, v);
+  st.setProperty("color-scheme", m);
+  st.fontSize = (15 * (settings.fontScale||1)) + "px";
+  document.documentElement.dataset.card = settings.cardStyle || "elevated";
+  document.documentElement.dataset.density = settings.density || "comfortable";
+  const tc = document.getElementById("theme-color"); if (tc) tc.setAttribute("content", th.bg);
+}
+const catColor = (list, id) => { const i = list.findIndex(c=>c.id===id); return `var(--c${(i<0?0:i)%8+1})`; };
+const catColorHex = (list, id) => { const i = list.findIndex(c=>c.id===id); return paletteColors()[(i<0?0:i)%8]; };
+
+/* ============ chrome ============ */
+function renderChrome(){
+  const r = ui.route;
+  $("#side").innerHTML = `
+    <div class="brand"><span class="brand-mark">${ico("check",2.4).replace('<svg','<svg width="15" height="15"')}</span>DayRank</div>
+    <nav class="nav" aria-label="Main">
+      ${ROUTES.map(([id,name,ic],i)=>`${i===3||i===8?'<div class="nav-sep"></div>':''}<a href="#${id}" ${r===id?'aria-current="page"':''}>${ico(ic)}${name}</a>`).join("")}
+    </nav>
+    <div class="side-foot sync">${statusHTML()}</div>`;
+  const tabs = [["dashboard","Home","home"],["review","Review","pen"],["stats","Stats","chart"],["calendar","Calendar","cal"]];
+  const inMore = !tabs.some(t=>t[0]===r);
+  $("#tabbar").innerHTML = tabs.map(([id,n,ic])=>`<a href="#${id}" ${r===id?'aria-current="page"':''}>${ico(ic)}${n}</a>`).join("") +
+    `<button data-act="more" ${inMore?'aria-current="page"':''}>${ico("dots")}More</button>`;
+}
+function route(){
+  const h = (location.hash||"").slice(1);
+  flushText();
+  ui.route = ROUTES.some(r=>r[0]===h) ? h : "dashboard";
+  ui.confirmDel = false; closeSheet(); renderChrome(); render(); window.scrollTo(0,0);
+}
+window.addEventListener("hashchange", route);
+function go(r){ if (location.hash === "#"+r) route(); else location.hash = r; }
+
+/* ============ render ============ */
+let after = [];
+function render(){
+  const v = $("#view");
+  if (!P.ready){
+    v.innerHTML = `<div class="loading"><div class="spin"></div><div>Loading your entries…</div></div>`;
+    return;
+  }
+  after = [];
+  const fn = VIEWS[ui.route] || VIEWS.dashboard;
+  v.innerHTML = (demo ? `<div class="banner warn"><div><b>You're viewing sample data.</b> Nothing here is yours and nothing you change is saved.</div><button class="btn sm" data-act="demo-off">Back to my data</button></div>` : "") + fn();
+  after.forEach(f=>{ try { f(); } catch(e){ console.error(e); } });
+}
+const VIEWS = {};
+
+/* ---- shared pieces ---- */
+function ring(score, size=132, stroke=11, cap=""){
+  const r = (size-stroke)/2, c = 2*Math.PI*r, off = score==null ? c : c*(1-clamp(score,0,10)/10);
+  return `<div class="ring" style="width:${size}px;height:${size}px">
+    <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="var(--surface-2)" stroke-width="${stroke}"/>
+    <circle class="arc" cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="${bandVar(score)}" stroke-width="${stroke}" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${off}"/></svg>
+    <div class="ring-in"><div><div class="ring-val" style="font-size:${size*0.27}px">${f1(score)}</div>${cap?`<div class="ring-cap">${cap}</div>`:""}</div></div></div>`;
+}
+function pill(s){ const b = band(s); return `<span class="pill" style="background:${bandVar(s)};color:${s==null?"var(--muted)":onBand(b)}">${f1(s)}</span>`; }
+function deltaChip(d, unit="", digits=1){
+  if (d==null || isNaN(d)) return "";
+  const r = Math.round(d*Math.pow(10,digits))/Math.pow(10,digits);
+  const cls = r>0 ? "up" : r<0 ? "down" : "flat";
+  return `<span class="delta ${cls}">${r>0?"+":r<0?"−":"±"}${Math.abs(r).toFixed(digits)}${unit}</span>`;
+}
+function ratingButtons(scope, id, val, of){
+  if (of > 10){
+    return `<div class="rate-100"><input type="range" min="0" max="${of}" step="1" value="${val??Math.round(of/2)}" data-in="${scope}-range" data-id="${id}" aria-label="Rating out of ${of}" id="${scope}-r-${id}">${val!=null?`<button class="btn sm ghost" data-act="${scope}-rate" data-id="${id}" data-v="">Clear</button>`:""}</div>`;
+  }
+  const s = val!=null ? norm(val, of) : null, b = band(s);
+  let out = `<div class="rate" role="group">`;
+  for (let i=1;i<=of;i++){
+    let style = "";
+    if (val!=null && i<val) style = `background:color-mix(in srgb, var(--s${b}) 26%, var(--surface-2));color:var(--fg)`;
+    if (val===i) style = `background:var(--s${b});color:${onBand(b)};font-weight:700`;
+    out += `<button data-act="${scope}-rate" data-id="${id}" data-v="${i}" aria-pressed="${val===i}" aria-label="${i} out of ${of}" style="${style}">${i}</button>`;
+  }
+  return out + `</div>`;
+}
+function tip(html, x, y){ const t = $("#tip"); t.innerHTML = html; t.hidden = false; const w = t.offsetWidth, h = t.offsetHeight; t.style.left = clamp(x+14, 8, innerWidth-w-8)+"px"; t.style.top = clamp(y-h-12, 8, innerHeight-h-8)+"px"; }
+function untip(){ $("#tip").hidden = true; }
+function toast(msg, cel=false){ const t = document.createElement("div"); t.className = "toast"+(cel?" cel":""); t.textContent = msg; $("#toasts").append(t); setTimeout(()=>t.remove(), cel?5200:4200); }
+
+/* ============ charts ============ */
+function lineChart(el, o){
+  if (!el) return;
+  const series = o.series.filter(s=>s.pts.length);
+  if (!series.length){ el.innerHTML = `<div class="empty-chart">${o.empty || "No reviews in this range yet."}</div>`; return; }
+  const W = Math.max(280, el.clientWidth||600), H = o.height||230, pl=30, pr=10, pt=10, pb=26;
+  const ts = series.flatMap(s=>s.pts.map(p=>p.t));
+  let t0 = o.t0 ?? Math.min(...ts), t1 = o.t1 ?? Math.max(...ts);
+  if (t1===t0){ t0 -= 864e5*3; t1 += 864e5*3; }
+  const y0 = o.yMin ?? 0, y1 = o.yMax ?? 10;
+  const X = t => pl + (t-t0)/(t1-t0)*(W-pl-pr), Y = v => pt + (1-(v-y0)/(y1-y0))*(H-pt-pb);
+  let g = "";
+  for (const v of (o.yTicks||[0,2,4,6,8,10])) g += `<line class="grid-l" x1="${pl}" x2="${W-pr}" y1="${Y(v)}" y2="${Y(v)}"/><text x="${pl-8}" y="${Y(v)+4}" text-anchor="end">${v}</text>`;
+  const n = W<460 ? 3 : 5;
+  for (let i=0;i<n;i++){ const t = t0 + i*(t1-t0)/(n-1); g += `<text x="${X(t)}" y="${H-6}" text-anchor="${i===0?"start":i===n-1?"end":"middle"}">${esc(o.xFmt(t))}</text>`; }
+  let paths = "";
+  series.forEach((s, si) => {
+    const pts = [...s.pts].sort((a,b)=>a.t-b.t);
+    const d = pts.map((p,i)=>`${i?"L":"M"}${X(p.t).toFixed(1)},${Y(p.y).toFixed(1)}`).join("");
+    if (s.area && pts.length>1) paths += `<path d="${d}L${X(pts[pts.length-1].t).toFixed(1)},${Y(y0)}L${X(pts[0].t).toFixed(1)},${Y(y0)}Z" style="fill:color-mix(in srgb, ${s.color} 12%, transparent)" stroke="none"/>`;
+    paths += `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="${s.width||2}" stroke-linejoin="round" stroke-linecap="round" ${s.dash?'stroke-dasharray="5 4"':''} opacity="${s.opacity||1}"/>`;
+    if (!s.noDots && pts.length <= (o.dotMax||75)) for (const p of pts){
+      paths += s.square ? `<rect x="${X(p.t)-3.5}" y="${Y(p.y)-3.5}" width="7" height="7" transform="rotate(45 ${X(p.t)} ${Y(p.y)})" fill="${s.color}" stroke="var(--surface)" stroke-width="1.5"/>`
+        : `<circle cx="${X(p.t)}" cy="${Y(p.y)}" r="3.2" fill="${s.color}" stroke="var(--surface)" stroke-width="1.5"/>`;
+    } else if (!s.noDots && pts.length){ const p = pts[pts.length-1]; paths += `<circle cx="${X(p.t)}" cy="${Y(p.y)}" r="4" fill="${s.color}" stroke="var(--surface)" stroke-width="2"/>`; }
+  });
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" role="img" aria-label="${esc(o.label||"Line chart")}">${g}${paths}<line class="guide" y1="${pt}" y2="${H-pb}" x1="-10" x2="-10"/><g class="hov"></g><rect x="${pl}" y="0" width="${W-pl-pr}" height="${H-pb}" fill="transparent" style="cursor:${o.onPick?"pointer":"default"}"/></svg>`;
+  const svg = el.querySelector("svg"), guide = svg.querySelector(".guide"), hov = svg.querySelector(".hov");
+  const uniq = [...new Set(ts)].sort((a,b)=>a-b);
+  const lookup = series.map(s => new Map(s.pts.map(p=>[p.t,p])));
+  let cur = null;
+  const near = ev => { const r = svg.getBoundingClientRect(); const x = (ev.clientX - r.left) * W / r.width; let best = uniq[0], bd = Infinity; for (const t of uniq){ const d = Math.abs(X(t)-x); if (d<bd){bd=d;best=t;} } return best; };
+  svg.addEventListener("pointermove", ev => {
+    const t = near(ev); cur = t;
+    guide.setAttribute("x1", X(t)); guide.setAttribute("x2", X(t));
+    let rows = "", dots = "", key = null;
+    series.forEach((s,i)=>{ const p = lookup[i].get(t); if (p){ key = key || p.key; rows += `<div class="tr"><i style="background:${s.color}"></i>${esc(s.name)} <b style="margin-left:auto;padding-left:.6rem">${f1(p.y)}</b></div>`; dots += `<circle cx="${X(t)}" cy="${Y(p.y)}" r="5" fill="${s.color}" stroke="var(--surface)" stroke-width="2"/>`; } });
+    hov.innerHTML = dots;
+    tip(`<b>${esc(o.tipFmt ? o.tipFmt(t) : o.xFmt(t))}</b>${rows}${o.onPick?'<div style="opacity:.7;margin-top:.2rem">Click to open</div>':''}`, ev.clientX, ev.clientY);
+  });
+  svg.addEventListener("pointerleave", ()=>{ untip(); hov.innerHTML = ""; guide.setAttribute("x1",-10); guide.setAttribute("x2",-10); });
+  if (o.onPick) svg.addEventListener("click", ev => { const t = near(ev); for (const m of lookup){ const p = m.get(t); if (p && p.key){ untip(); o.onPick(p.key); return; } } });
+}
+function barChart(el, o){
+  if (!el) return;
+  if (!o.bars.some(b=>b.v!=null)){ el.innerHTML = `<div class="empty-chart">${o.empty||"Nothing to show yet."}</div>`; return; }
+  const W = Math.max(260, el.clientWidth||600), H = o.height||200, pl=28, pr=6, pt=18, pb=24;
+  const n = o.bars.length, bw = (W-pl-pr)/n, w = Math.min(bw*0.62, 44);
+  const y1 = o.yMax ?? 10, Y = v => pt + (1 - v/y1)*(H-pt-pb);
+  let g = "";
+  for (const v of (o.yTicks||[0,5,10])) g += `<line class="grid-l" x1="${pl}" x2="${W-pr}" y1="${Y(v)}" y2="${Y(v)}"/><text x="${pl-7}" y="${Y(v)+4}" text-anchor="end">${v}</text>`;
+  const step = Math.ceil(n / Math.max(1, Math.floor((W-pl)/38)));
+  o.bars.forEach((b,i)=>{
+    const x = pl + i*bw + (bw-w)/2;
+    if (b.v!=null){
+      const y = Y(b.v), hgt = Math.max(2, Y(0)-y);
+      g += `<rect class="bb" data-i="${i}" x="${x}" y="${y}" width="${w}" height="${hgt}" rx="${Math.min(5,w/3)}" style="fill:${b.color||"var(--accent)"};cursor:${o.onPick&&b.key?"pointer":"default"}"/>`;
+      if (n<=14 && W/n>30) g += `<text x="${x+w/2}" y="${y-5}" text-anchor="middle" style="fill:var(--fg);font-family:var(--num);font-size:10.5px">${f1(b.v)}</text>`;
+    } else g += `<rect x="${x}" y="${Y(0)-2}" width="${w}" height="2" style="fill:var(--border)"/>`;
+    if (i % step === 0) g += `<text x="${x+w/2}" y="${H-6}" text-anchor="middle">${esc(b.label)}</text>`;
+  });
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" role="img" aria-label="${esc(o.label||"Bar chart")}">${g}</svg>`;
+  el.querySelectorAll(".bb").forEach(r => {
+    const b = o.bars[+r.dataset.i];
+    r.addEventListener("pointermove", ev => tip(`<b>${esc(b.tip||b.label)}</b><div>${f1(b.v)}${b.sub?` · ${esc(b.sub)}`:""}</div>`, ev.clientX, ev.clientY));
+    r.addEventListener("pointerleave", untip);
+    if (o.onPick && b.key) r.addEventListener("click", ()=>{ untip(); o.onPick(b.key); });
+  });
+}
+function radarChart(el, o){
+  if (!el) return;
+  const W = Math.min(Math.max(280, el.clientWidth||460), 520), H = Math.round(W*0.82);
+  const cx = W/2, cy = H/2+4, R = Math.min(W,H)/2 - 44, n = o.axes.length;
+  const ang = i => -Math.PI/2 + i*2*Math.PI/n;
+  const pt = (i,v) => [cx + Math.cos(ang(i))*R*v/10, cy + Math.sin(ang(i))*R*v/10];
+  let g = "";
+  for (const v of [2,4,6,8,10]) g += `<polygon points="${o.axes.map((_,i)=>pt(i,v).join(",")).join(" ")}" fill="none" class="grid-l"/>`;
+  o.axes.forEach((a,i)=>{ const [x,y] = pt(i,10); g += `<line class="grid-l" x1="${cx}" y1="${cy}" x2="${x}" y2="${y}"/>`;
+    const [lx,ly] = pt(i,11.6); const c = Math.cos(ang(i)); g += `<text x="${lx}" y="${ly+4}" text-anchor="${Math.abs(c)<.2?"middle":c>0?"start":"end"}" style="font-size:11px">${esc(a)}</text>`; });
+  for (const s of o.sets){
+    const pts = s.values.map((v,i)=>pt(i, v??0).join(",")).join(" ");
+    g += `<polygon points="${pts}" style="fill:color-mix(in srgb, ${s.color} 16%, transparent)" stroke="${s.color}" stroke-width="2" stroke-linejoin="round" ${s.dash?'stroke-dasharray="5 4"':''}/>`;
+    s.values.forEach((v,i)=>{ if (v!=null){ const [x,y] = pt(i,v); g += `<circle cx="${x}" cy="${y}" r="3.2" fill="${s.color}" stroke="var(--surface)" stroke-width="1.5"><title>${esc(s.name)} · ${esc(o.axes[i])}: ${f1(v)}</title></circle>`; } });
+  }
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:${W}px;margin:0 auto" role="img" aria-label="Radar chart">${g}</svg>`;
+}
+function heatmap(el, o){
+  if (!el) return;
+  const cell = o.cell || 12, gap = 3, left = 30, top = 20, today = todayKey();
+  const start = weekStartOf(o.from), total = daysBetween(start, o.to) + 1, cols = Math.ceil(total/7);
+  const W = left + cols*(cell+gap), H = top + 7*(cell+gap);
+  const by = scored().byKey;
+  let g = "";
+  for (let i=0;i<total;i++){
+    const k = addDays(start, i), col = Math.floor(i/7), row = i%7;
+    const x = left + col*(cell+gap), y = top + row*(cell+gap);
+    if (k < o.from || k > o.to) continue;
+    const rec = by[k];
+    const cls = k > today ? "hf" : rec && rec.s!=null ? "h"+band(rec.s) : rec ? "hn" : "h0";
+    const label = `${fmtDay(k,"med")} ${parse(k).getFullYear()}: ${rec && rec.s!=null ? f1(rec.s)+" / 10" : rec ? "notes only" : k>today ? "upcoming" : "no review"}`;
+    g += `<rect class="c ${cls}${o.sel===k?" sel":""}" data-k="${k}" x="${x}" y="${y}" width="${cell}" height="${cell}" rx="2.5"><title>${label}</title></rect>`;
+  }
+  const labels = [];
+  if (!o.from.endsWith("-01")) labels.push({col:Math.floor(daysBetween(start,o.from)/7), mk:o.from.slice(0,7)});
+  for (let col=0; col<cols; col++) for (let r=0; r<7; r++){ const k = addDays(start, col*7+r); if (k.endsWith("-01") && k>=o.from && k<=o.to){ labels.push({col, mk:k.slice(0,7)}); break; } }
+  labels.forEach((L,i)=>{
+    const nx = labels[i+1]; if (nx && nx.col - L.col < 3) return;
+    const x = left + L.col*(cell+gap), name = monthName(L.mk,true);
+    g += `<text x="${x}" y="11" style="font-size:10.5px">${name}</text>`;
+    if (o.showReviews){ const done = hasReview(L.mk), dx = x + name.length*6.4 + 6;
+      g += `<rect x="${dx-3}" y="4" width="6" height="6" transform="rotate(45 ${dx} 7)" style="fill:${done?"var(--mo)":"transparent"};stroke:var(--mo);stroke-width:1"><title>${monthLabel(L.mk)}: ${done?"monthly review done":"no monthly review"}</title></rect>`; }
+  });
+  const wl = settings.weekStart===1 ? ["Mon","","Wed","","Fri","",""] : ["","Mon","","Wed","","Fri",""];
+  wl.forEach((l,i)=>{ if (l) g += `<text x="0" y="${top+i*(cell+gap)+cell-2}" style="font-size:10px">${l}</text>`; });
+  el.innerHTML = `<div class="hscroll"><svg class="hm" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Daily score heatmap">${g}</svg></div>`;
+  if (o.onPick) el.querySelectorAll("rect.c").forEach(r => r.addEventListener("click", ()=>{ if (r.dataset.k <= today) o.onPick(r.dataset.k); }));
+  const sc = el.querySelector(".hscroll"); if (o.scrollEnd) sc.scrollLeft = sc.scrollWidth;
+}
+function legendScores(){ return `<div class="legend">${BAND_NAMES.map((n,i)=>`<span><i class="lg${i}"></i>${n}</span>`).join("")}</div>`; }
+function mount(id, fn){ after.push(()=>fn(document.getElementById(id))); }
+
+/* ============ DASHBOARD ============ */
+VIEWS.dashboard = function(){
+  const t = todayKey(), hour = new Date().getHours();
+  const greet = hour < 5 ? "Late night" : hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+  const any = scored().all.length > 0;
+  let html = `<header class="head"><div><h1>${greet}</h1><p>${fmtDay(t)}${t!==ymd(new Date())?" · still counting as yesterday until "+settings.dayStart+":00":""}</p></div>
+    <div class="head-actions"><button class="btn ${ui.dashEdit?"primary":""}" data-act="dash-edit">${ui.dashEdit?"Done":"Customise"}</button></div></header>`;
+  if (!demo && backupDue()) html += `<div class="banner"><div><b>Time for a backup.</b> Your entries live only on this phone. A backup file keeps them safe if the app is ever removed.</div><button class="btn sm primary" data-act="export-json">Back up now</button></div>`;
+  if (!any && !demo){
+    html += `<div class="card"><div class="empty"><h2>Your first day starts here</h2><p style="max-width:46ch;margin:0">Rate four things about today in about a minute. Over weeks, DayRank turns those ratings into trends, patterns and records.</p>
+      <div class="row" style="justify-content:center"><a class="btn primary" href="#review">Review today</a><button class="btn" data-act="demo-on">Explore with sample data</button></div></div></div>`;
+  }
+  if (ui.dashEdit) html += `<div class="banner"><div>Drag widgets to reorder, or use the arrows. Hidden widgets stay listed here while you edit.</div><button class="btn sm" data-act="dash-reset">Reset layout</button></div>`;
+  html += `<div class="grid ${ui.dashEdit?"dash-editing":""}" id="dash">`;
+  const order = settings.dash.order;
+  order.forEach((id, i) => {
+    const hidden = settings.dash.hidden.includes(id);
+    if (!ui.dashEdit && hidden) return;
+    let body = W_RENDER[id]();
+    if (!body && !ui.dashEdit) return;
+    if (!body) body = `<div class="muted small">${id==="prompt"?"Appears at the end of each month and in the first week of the next, until that month's review is done.":"Nothing to show yet."}</div>`;
+    html += `<section class="card w ${WIDGETS[id].wide?"wide":""} ${hidden?"is-hidden":""}" data-w="${id}" ${ui.dashEdit?'draggable="true"':""}>
+      <div class="w-edit"><span>${WIDGETS[id].name}</span><span class="row" style="gap:.2rem">
+      <button class="btn sm ghost icon" data-act="w-move" data-id="${id}" data-d="-1" aria-label="Move up" ${i===0?"disabled":""}>${ico("up")}</button>
+      <button class="btn sm ghost icon" data-act="w-move" data-id="${id}" data-d="1" aria-label="Move down" ${i===order.length-1?"disabled":""}>${ico("down")}</button>
+      <button class="btn sm" data-act="w-hide" data-id="${id}">${hidden?"Show":"Hide"}</button></span></div>${body}</section>`;
+  });
+  html += `</div>`;
+  after.push(dashAfter);
+  return html;
+};
+const W_RENDER = {
+  today(){
+    const t = todayKey(), e = D().days[t], s = scoreOf(e), cats = activeDaily(), rm = ratingMap(e);
+    const rated = Object.keys(rm).length;
+    const preview = e ? (e.notes || e.best || e.memorable || e.grateful || "").trim() : "";
+    return `<div class="section-title"><h2>Today</h2><span class="tag-daily">Daily review</span></div>
+    <div class="row" style="gap:1.5rem;align-items:center">
+      ${ring(s, 118, 10, s==null ? "Not rated" : `${rated} of ${cats.length} rated`)}
+      <div class="stack" style="flex:1;min-width:220px;gap:.5rem">
+        ${s==null ? `<div class="muted">You haven't reviewed today yet. It takes about a minute.</div>` :
+          cats.map(c=>{ const r = rm[c.id]; const v = r ? norm(r.v,r.of) : null; return `<div class="row" style="gap:.6rem;flex-wrap:nowrap"><span class="small" style="width:8.5rem;flex:none">${esc(c.name)}</span><span class="bar"><i style="width:${v==null?0:v*10}%;background:${catColor(settings.daily,c.id)}"></i></span><span class="num small" style="width:2.2rem;text-align:right">${r?`${r.v}`:"—"}</span></div>`; }).join("")}
+        ${preview ? `<div class="small" style="font-family:var(--serif);font-size:.98rem;color:var(--fg);margin-top:.25rem">“${esc(preview.slice(0,160))}${preview.length>160?"…":""}”</div>` : ""}
+        ${(e?.tags||[]).length ? `<div class="chips">${e.tags.map(x=>`<span class="chip">${esc(x)}</span>`).join("")}</div>` : ""}
+        <div><a class="btn ${s==null?"primary":""}" href="#review" data-act="goto-day" data-k="${t}">${s==null ? "Review today" : "Edit today's review"}</a></div>
+      </div></div>`;
+  },
+  prompt(){
+    const p = monthPrompt(); if (!p) return "";
+    return `<div class="row between"><div><span class="tag-monthly">Monthly review</span><div style="font-family:var(--serif);font-size:1.35rem;margin-top:.2rem">${esc(p.text)}</div><div class="muted small">Ten areas of life, rated once a month. Separate from your daily scores.</div></div>
+      <button class="btn primary" data-act="goto-month" data-mk="${p.mk}">Start ${monthName(p.mk)} review</button></div>`;
+  },
+  week(){
+    const t = todayKey(), ws = weekStartOf(t), we = addDays(ws,6);
+    const cur = agg(inRange(ws, we), []), prev = agg(inRange(addDays(ws,-7), addDays(ws,-1)), []);
+    const by = scored().byKey;
+    let bars = "";
+    for (let i=0;i<7;i++){ const k = addDays(ws,i), r = by[k]; const lab = DN[parse(k).getDay()][0];
+      bars += `<div title="${fmtDay(k,"med")}: ${r&&r.s!=null?f1(r.s):"no review"}">${r&&r.s!=null ? `<i style="height:${Math.max(8,r.s*10)}%;background:${bandVar(r.s)}"></i>` : k>t ? `<i style="height:6%;background:var(--surface-2)"></i>` : `<i class="none"></i>`}<span>${lab}</span></div>`; }
+    return `<div class="section-title"><h2>This week</h2><span class="muted small">${fmtDay(ws,"short")} – ${fmtDay(we,"short")}</span></div>
+      <div class="row between" style="align-items:flex-end;margin-bottom:.8rem"><div><div class="big">${f1(cur.avg)}</div><div class="muted small">average daily score · ${cur.n} day${cur.n===1?"":"s"}</div></div>
+      <div style="text-align:right">${cur.avg!=null&&prev.avg!=null ? deltaChip(cur.avg-prev.avg)+`<div class="muted tiny" style="margin-top:.2rem">vs last week (${f1(prev.avg)})</div>` : `<div class="muted tiny">No comparison yet</div>`}</div></div>
+      <div class="minibars">${bars}</div>
+      <div style="margin-top:.75rem">${cur.hi ? `<div class="kv"><span class="k">Highest</span><span>${fmtDay(cur.hi.key,"med")} ${pill(cur.hi.s)}</span></div><div class="kv"><span class="k">Lowest</span><span>${fmtDay(cur.lo.key,"med")} ${pill(cur.lo.s)}</span></div>` : ""}</div>`;
+  },
+  month(){
+    const mk = todayKey().slice(0,7), pm = addMonths(mk,-1), cats = activeDaily();
+    const cur = agg(monthRecs(mk), cats), prev = agg(monthRecs(pm), cats), ms = monthScore(mk);
+    return `<div class="section-title"><h2>${monthName(mk)}</h2><span class="tag-daily">From daily reviews</span></div>
+      <div class="row between" style="align-items:flex-end;margin-bottom:.6rem"><div><div class="big">${f1(cur.avg)}</div><div class="muted small">average daily score · ${cur.n} day${cur.n===1?"":"s"}</div></div>
+      <div style="text-align:right">${cur.avg!=null&&prev.avg!=null ? deltaChip(cur.avg-prev.avg)+`<div class="muted tiny" style="margin-top:.2rem">vs ${monthName(pm)} (${f1(prev.avg)})</div>` : ""}</div></div>
+      ${cats.map(c=>`<div class="kv"><span class="k">${esc(c.name)}</span><span class="row" style="gap:.5rem;flex-wrap:nowrap"><span class="num">${f1(cur.cat[c.id])}</span>${cur.cat[c.id]!=null&&prev.cat[c.id]!=null?deltaChip(cur.cat[c.id]-prev.cat[c.id]):""}</span></div>`).join("")}
+      <div class="kv"><span class="k"><span class="tag-monthly">Monthly review</span></span><span>${ms!=null ? pill(ms) : `<button class="btn sm" data-act="goto-month" data-mk="${mk}">Not done</button>`}</span></div>`;
+  },
+  year(){
+    const y = todayKey().slice(0,4), recs = scored().list.filter(r=>r.key.startsWith(y));
+    const a = agg(recs, []);
+    const months = []; for (let m=1;m<=12;m++){ const mk = `${y}-${pad(m)}`; const rr = monthRecs(mk); months.push({mk, n:rr.length, v:avg(rr.map(r=>r.s))}); }
+    const ok = months.filter(m=>m.n>=3);
+    const best = ok.length ? ok.reduce((a,b)=>b.v>a.v?b:a) : null, worst = ok.length>1 ? ok.reduce((a,b)=>b.v<a.v?b:a) : null;
+    const revs = Object.keys(D().reviews).filter(k=>k.startsWith(y) && hasReview(k)).length;
+    return `<div class="section-title"><h2>${y}</h2><span class="muted small">Year so far</span></div>
+      <div class="row between" style="align-items:flex-end;margin-bottom:.6rem"><div><div class="big">${f1(a.avg)}</div><div class="muted small">average daily score</div></div></div>
+      <div class="minibars" style="height:40px;margin-bottom:.5rem">${months.map(m=>`<div title="${monthName(m.mk)}: ${m.v!=null?f1(m.v):"no reviews"}">${m.v!=null?`<i style="height:${m.v*10}%;background:${bandVar(m.v)}"></i>`:`<i style="height:4%;background:var(--surface-2)"></i>`}<span>${monthName(m.mk)[0]}</span></div>`).join("")}</div>
+      <div class="kv"><span class="k">Best month</span><span>${best?`${monthName(best.mk)} ${pill(best.v)}`:"—"}</span></div>
+      <div class="kv"><span class="k">Lowest month</span><span>${worst?`${monthName(worst.mk)} ${pill(worst.v)}`:"—"}</span></div>
+      <div class="kv"><span class="k">Daily reviews</span><span class="num">${a.n}</span></div>
+      <div class="kv"><span class="k">Monthly reviews</span><span class="num">${revs}</span></div>
+      ${ok.length<2 && months.some(m=>m.n) ? `<div class="muted tiny" style="margin-top:.4rem">Best and lowest months need at least 3 reviewed days.</div>`:""}`;
+  },
+  heat(){
+    return `<div class="section-title"><h2>Recent days</h2><a class="btn sm ghost" href="#calendar">Open calendar</a></div><div id="dash-heat"></div><div style="margin-top:.6rem">${legendScores()}</div>`;
+  },
+  insights(){
+    const ins = computeInsights();
+    return `<div class="section-title"><h2>Insights</h2><a class="btn sm ghost" href="#insights">All</a></div>
+      ${ins.length ? `<div class="stack">${ins.slice(0,2).map(i=>`<div class="insight ${i.tone}"><div class="kind"><i></i>${esc(i.kind)}</div><div class="t" style="font-size:.95rem">${esc(i.title)}</div></div>`).join("")}</div>`
+        : `<div class="muted small">Insights appear once there's enough data to back them up, usually after two weeks of daily reviews.</div>`}`;
+  },
+  streak(){
+    const s = streaks(); const next = MILESTONES.find(m=>m>s.total);
+    return `<div class="section-title"><h2>Consistency</h2><a class="btn sm ghost" href="#records">Records</a></div>
+      <div class="tiles" style="grid-template-columns:repeat(3,minmax(0,1fr))">
+        <div><div class="muted tiny">Current streak</div><div class="num" style="font-size:1.5rem">${s.cur}</div></div>
+        <div><div class="muted tiny">Longest</div><div class="num" style="font-size:1.5rem">${s.longest}</div></div>
+        <div><div class="muted tiny">Days tracked</div><div class="num" style="font-size:1.5rem">${s.total}</div></div></div>
+      ${next ? `<div style="margin-top:.9rem"><div class="row between small"><span class="muted">Next milestone</span><span class="num">${s.total} / ${next} days</span></div><div class="bar" style="margin-top:.35rem"><i style="width:${s.total/next*100}%;background:var(--accent)"></i></div></div>` : `<div class="muted small" style="margin-top:.9rem">Every milestone reached. A full year of reflection.</div>`}`;
+  }
+};
+function monthPrompt(){
+  const t = todayKey(), d = parse(t), mk = t.slice(0,7), prev = addMonths(mk,-1);
+  if (d.getDate() <= 7 && !hasReview(prev) && (monthRecs(prev).length || scored().list.length)) return {mk:prev, text:`Your ${monthName(prev)} review is ready`};
+  if (d.getDate() >= dim(mk)-2 && !hasReview(mk)) return {mk, text:`${monthName(mk)} is nearly over. Time to look back.`};
+  return null;
+}
+function dashAfter(){
+  const el = $("#dash-heat");
+  if (el){ const t = todayKey(); heatmap(el, {from:addDays(weekStartOf(t), -7*19), to:addDays(weekStartOf(t),6), onPick:openDay, scrollEnd:true, showReviews:true}); }
+  const grid = $("#dash"); if (!grid || !ui.dashEdit) return;
+  let dragId = null;
+  grid.querySelectorAll(".w").forEach(w => {
+    w.addEventListener("dragstart", e => { dragId = w.dataset.w; e.dataTransfer.effectAllowed = "move"; try { e.dataTransfer.setData("text/plain", dragId); } catch {} });
+    w.addEventListener("dragover", e => { e.preventDefault(); w.classList.add("drag-over"); });
+    w.addEventListener("dragleave", () => w.classList.remove("drag-over"));
+    w.addEventListener("drop", e => { e.preventDefault(); w.classList.remove("drag-over"); const to = w.dataset.w; if (!dragId || dragId===to) return;
+      const o = settings.dash.order.filter(x=>x!==dragId); o.splice(o.indexOf(to), 0, dragId); settings.dash.order = o; saveSettings(); render(); });
+  });
+}
+
+/* ============ DAILY REVIEW ============ */
+VIEWS.review = function(){
+  const t = todayKey();
+  if (!ui.rv.date || ui.rv.date > t) ui.rv.date = t;
+  const k = ui.rv.date, e = D().days[k] || {}, rm = ratingMap(e), s = scoreOf(e);
+  const cats = activeDaily(); const extra = Object.keys(rm).filter(id=>!cats.some(c=>c.id===id));
+  const rated = Object.keys(rm).length, total = cats.length + extra.length;
+  const missed = []; for (let i=1;i<=7;i++){ const d = addDays(t,-i); if (!(scored().byKey[d] && scored().byKey[d].s!=null)) missed.push(d); }
+  const allTags = [...new Set([...settings.tags, ...(e.tags||[])])];
+  return `
+  <header class="head"><div class="datebar">
+      <button class="btn icon ghost" data-act="rv-shift" data-d="-1" aria-label="Previous day">${ico("left")}</button>
+      <h1 class="when">${k===t?"Today":k===addDays(t,-1)?"Yesterday":fmtDay(k,"med")}</h1>
+      <button class="btn icon ghost" data-act="rv-shift" data-d="1" aria-label="Next day" ${k>=t?"disabled":""}>${ico("right")}</button>
+    </div>
+    <div class="head-actions"><span class="save-state" id="rv-state">${e.at?`${ico("check").replace('<svg','<svg width="14" height="14"')} Saved`:""}</span>
+      <input type="date" id="rv-date" value="${k}" max="${t}" data-in="rv-date" style="width:auto" aria-label="Choose a date">
+      ${k!==t?`<button class="btn" data-act="rv-today">Today</button>`:""}</div></header>
+  <p class="muted" style="margin:-.75rem 0 0">${fmtDay(k)} · <span class="tag-daily" style="vertical-align:middle">Daily review</span></p>
+  ${missed.length && k===t ? `<div class="missed small"><span class="muted">Missed days you can still fill in:</span>${missed.slice(0,6).map(d=>`<button class="chip" data-act="rv-go" data-k="${d}">${fmtDay(d,"med")}</button>`).join("")}</div>` : ""}
+  <section class="card"><div class="review-top">
+    <div class="score-side">${ring(s, 150, 12, s==null?"Overall":"Overall")}
+      <div style="text-align:center"><div class="small" style="font-weight:600">${rated} of ${total} rated</div><div class="muted tiny" style="max-width:15ch">${rated===0?"Rate any category to get a score":rated<total?"Average of rated categories only":"Average of all categories"}</div></div></div>
+    <div>${cats.map(c=>{ const r = rm[c.id]; return `<div class="rate-row"><div class="rate-top"><div><div class="rate-name">${esc(c.name)}</div><div class="rate-q">${esc(c.q||"")}</div></div><div class="rate-val" style="color:${r?bandVar(norm(r.v,r.of)):"var(--muted)"}">${r?`${r.v}<span class="muted" style="font-size:.75rem">/${r.of}</span>`:"—"}</div></div>${ratingButtons("rv", c.id, r?.v, r?.of||c.of||10)}</div>`; }).join("")}
+    ${extra.map(id=>{ const r = rm[id]; return `<div class="rate-row"><div class="rate-top"><div><div class="rate-name">${esc(catName(settings.daily,id))}</div><div class="rate-q">Removed category · kept from this day</div></div><div class="rate-val">${r.v}<span class="muted" style="font-size:.75rem">/${r.of}</span></div></div></div>`; }).join("")}
+    <div class="muted tiny" style="margin-top:.6rem">Tap a number to rate. Tap it again to clear. Everything saves as you go.</div></div>
+  </div></section>
+  <section class="card stack">
+    <div class="section-title" style="margin:0"><h2>Reflection</h2><span class="muted small">All optional</span></div>
+    <div class="reflect-grid">${REFLECT_DAY.map(([f,l])=>`<label class="field">${l}<textarea id="rv-${f}" data-in="rv-text" data-f="${f}" rows="2">${esc(e[f]||"")}</textarea></label>`).join("")}</div>
+    <label class="field">Journal<textarea class="journal" id="rv-notes" data-in="rv-text" data-f="notes" placeholder="Anything else about today…">${esc(e.notes||"")}</textarea></label>
+    <div class="field" style="gap:.5rem"><span class="small muted" style="font-weight:500">Tags</span>
+      <div class="chips">${allTags.map(tg=>`<button class="chip" data-act="rv-tag" data-t="${esc(tg)}" aria-pressed="${(e.tags||[]).includes(tg)}">${esc(tg)}</button>`).join("")}
+      <input type="text" id="rv-newtag" placeholder="Add tag" style="width:9rem;padding:.2rem .6rem;border-radius:999px" data-in="rv-newtag" aria-label="Add a tag"></div></div>
+  </section>
+  ${D().days[k] ? `<div class="row" style="justify-content:flex-end">${ui.confirmDel ? `<span class="confirm-inline">Delete this day's review? <button class="btn sm danger" data-act="rv-del-yes">Delete</button><button class="btn sm" data-act="rv-del-no">Cancel</button></span>` : `<button class="btn ghost danger sm" data-act="rv-del">Delete this review</button>`}</div>` : ""}`;
+};
+function rvGet(){ const k = ui.rv.date; return [k, clone(D().days[k]) || {r:[], tags:[]}]; }
+let rvTextTimer = null;
+function rvTextSave(){
+  const [k, e] = rvGet();
+  for (const [f] of REFLECT_DAY) e[f] = $("#rv-"+f)?.value || "";
+  e.notes = $("#rv-notes")?.value || "";
+  setDay(k, e); checkMilestones();
+  const st = $("#rv-state"); if (st) st.innerHTML = `${ico("check").replace('<svg','<svg width="14" height="14"')} Saved`;
+}
+
+/* ============ MONTHLY REVIEW ============ */
+VIEWS.month = function(){
+  const t = todayKey(), cmk = t.slice(0,7);
+  if (!ui.mo.mk){ const p = monthPrompt(); ui.mo.mk = p ? p.mk : cmk; }
+  if (ui.mo.mk > cmk) ui.mo.mk = cmk;
+  const mk = ui.mo.mk, rv = D().reviews[mk] || {}, rm = ratingMap(rv), s = scoreOf(rv);
+  const cats = activeMonthly(); const extra = Object.keys(rm).filter(id=>!cats.some(c=>c.id===id));
+  const rated = Object.keys(rm).length;
+  const dref = agg(monthRecs(mk), []);
+  return `
+  <header class="head"><div class="datebar">
+    <button class="btn icon ghost" data-act="mo-shift" data-d="-1" aria-label="Previous month">${ico("left")}</button>
+    <h1 class="when">${monthLabel(mk)}</h1>
+    <button class="btn icon ghost" data-act="mo-shift" data-d="1" aria-label="Next month" ${mk>=cmk?"disabled":""}>${ico("right")}</button></div>
+    <div class="head-actions"><span class="save-state" id="mo-state">${rv.at?`${ico("check").replace('<svg','<svg width="14" height="14"')} Saved`:""}</span></div></header>
+  <p class="muted" style="margin:-.75rem 0 0"><span class="tag-monthly" style="vertical-align:middle">Monthly review</span> · A broader look at ${monthName(mk)}. Scored separately from your daily reviews.</p>
+  <section class="card"><div class="review-top">
+    <div class="score-side">${ring(s, 150, 12, "Month score")}
+      <div style="text-align:center"><div class="small" style="font-weight:600">${rated} of ${cats.length + extra.length} rated</div>
+      ${dref.n ? `<div class="muted tiny" style="max-width:17ch;margin-top:.4rem">For reference: daily reviews averaged ${f1(dref.avg)} across ${dref.n} days. This doesn't change the month score.</div>` : ""}</div></div>
+    <div class="stack" style="gap:.75rem">${cats.map(c=>{ const r = rm[c.id]; const n = (rv.notes||{})[c.id] || {}; const hasN = CAT_NOTES.some(([f])=>(n[f]||"").trim());
+      return `<div class="cat-card"><div class="rate-top" style="margin-bottom:.5rem"><div class="rate-name">${esc(c.name)}</div><div class="rate-val" style="color:${r?bandVar(norm(r.v,r.of)):"var(--muted)"}">${r?`${r.v}<span class="muted" style="font-size:.75rem">/${r.of}</span>`:"—"}</div></div>
+        ${ratingButtons("mo", c.id, r?.v, r?.of||c.of||10)}
+        <details class="more" ${hasN?"open":""}><summary>${hasN?"Notes":"Add notes"}</summary><div class="reflect-grid" style="margin-top:.6rem">${CAT_NOTES.map(([f,l])=>`<label class="field">${l}<textarea id="mo-${c.id}-${f}" data-in="mo-text" rows="2">${esc(n[f]||"")}</textarea></label>`).join("")}</div></details></div>`; }).join("")}
+      ${extra.map(id=>`<div class="cat-card muted small">${esc(catName(settings.monthly,id))}: ${rm[id].v}/${rm[id].of} (removed category)</div>`).join("")}
+    </div></div></section>
+  <section class="card stack"><div class="section-title" style="margin:0"><h2>Looking back on ${monthName(mk)}</h2><span class="muted small">All optional</span></div>
+    <div class="reflect-grid">${REFLECT_MONTH.map(([f,l])=>`<label class="field">${l}<textarea id="moq-${f}" data-in="mo-text" rows="3" ${f==="next"?'class="journal" style="min-height:5rem"':""}>${esc((rv.q||{})[f]||"")}</textarea></label>`).join("")}</div></section>
+  ${D().reviews[mk] ? `<div class="row" style="justify-content:flex-end">${ui.confirmDel ? `<span class="confirm-inline">Delete the ${monthName(mk)} review? <button class="btn sm danger" data-act="mo-del-yes">Delete</button><button class="btn sm" data-act="mo-del-no">Cancel</button></span>` : `<button class="btn ghost danger sm" data-act="mo-del">Delete this monthly review</button>`}</div>` : ""}`;
+};
+function moGet(){ const mk = ui.mo.mk; return [mk, clone(D().reviews[mk]) || {r:[], notes:{}, q:{}}]; }
+let moTextTimer = null;
+function moTextSave(){
+  const [mk, rv] = moGet(); rv.notes = rv.notes || {}; rv.q = {};
+  for (const c of activeMonthly()){ const n = {}; for (const [f] of CAT_NOTES){ const el = $(`#mo-${c.id}-${f}`); if (el) n[f] = el.value; } if (Object.values(n).some(v=>v.trim())) rv.notes[c.id] = n; else delete rv.notes[c.id]; }
+  for (const [f] of REFLECT_MONTH) rv.q[f] = $("#moq-"+f)?.value || "";
+  setReview(mk, rv); checkMilestones();
+  const st = $("#mo-state"); if (st) st.innerHTML = `${ico("check").replace('<svg','<svg width="14" height="14"')} Saved`;
+}
+
+/* ============ STATISTICS ============ */
+function rangeKeys(){
+  const t = todayKey(), r = ui.st.range;
+  if (r==="custom"){ let a = ui.st.from || addDays(t,-29), b = ui.st.to || t; if (a>b) [a,b]=[b,a]; return [a,b]; }
+  if (r==="all"){ const l = scored().list; return [l.length ? l[0].key : t, t]; }
+  const n = {"7":7,"30":30,"90":90,"180":182,"365":365}[r] || 30;
+  return [addDays(t, -(n-1)), t];
+}
+VIEWS.stats = function(){
+  const tab = ui.st.tab;
+  return `<header class="head"><div><h1>Statistics</h1><p>${tab==="daily"?"Built from your daily reviews.":"Built from your monthly reviews only."}</p></div>
+    <div class="seg" role="group"><button data-act="st-tab" data-v="daily" aria-pressed="${tab==="daily"}">Daily</button><button data-act="st-tab" data-v="monthly" aria-pressed="${tab==="monthly"}">Monthly</button></div></header>
+    ${tab==="daily" ? statsDaily() : statsMonthly()}`;
+};
+function statsDaily(){
+  const [a,b] = rangeKeys(), cats = activeDaily(), len = daysBetween(a,b)+1;
+  const recs = inRange(a,b), A = agg(recs, cats);
+  const P2 = agg(inRange(addDays(a,-len), addDays(a,-1)), cats);
+  const ranges = [["7","7D"],["30","30D"],["90","90D"],["180","6M"],["365","1Y"],["all","All"],["custom","Custom"]];
+  let html = `<div class="row between"><div class="seg" role="group">${ranges.map(([v,l])=>`<button data-act="st-range" data-v="${v}" aria-pressed="${ui.st.range===v}">${l}</button>`).join("")}</div>
+    <span class="tag-daily">Daily reviews · ${fmtDay(a,"short")} ${a.slice(0,4)} – ${fmtDay(b,"short")} ${b.slice(0,4)}</span></div>`;
+  if (ui.st.range==="custom") html += `<div class="row" style="max-width:420px"><label class="field" style="flex:1">From<input type="date" id="st-from" value="${a}" data-in="st-from"></label><label class="field" style="flex:1">To<input type="date" id="st-to" value="${b}" max="${todayKey()}" data-in="st-to"></label></div>`;
+  const cmp = (x,y) => x!=null && y!=null ? deltaChip(x-y) : "";
+  html += `<div class="tiles">
+    <div class="tile"><div class="label">Average score</div><div class="value">${f1(A.avg)}</div><div class="sub">${cmp(A.avg,P2.avg)} ${P2.avg!=null?"vs previous "+len+" days":""}</div></div>
+    <div class="tile"><div class="label">Days reviewed</div><div class="value">${A.n}<span class="muted" style="font-size:1rem"> / ${len}</span></div><div class="sub">${len?Math.round(A.n/len*100):0}% of days</div></div>
+    <div class="tile"><div class="label">Highest</div><div class="value">${A.hi?f1(A.hi.s):"—"}</div><div class="sub">${A.hi?`<a href="#" data-act="open-day" data-k="${A.hi.key}">${fmtDay(A.hi.key,"med")}</a>`:""}</div></div>
+    <div class="tile"><div class="label">Lowest</div><div class="value">${A.lo?f1(A.lo.s):"—"}</div><div class="sub">${A.lo?`<a href="#" data-act="open-day" data-k="${A.lo.key}">${fmtDay(A.lo.key,"med")}</a>`:""}</div></div></div>
+  <div class="tiles">${cats.map(c=>`<div class="tile"><div class="label"><span class="chip" style="border:0;padding:0;background:none"><span class="sw" style="background:${catColor(settings.daily,c.id)}"></span>${esc(c.name)}</span></div><div class="value">${f1(A.cat[c.id])}</div><div class="sub">${cmp(A.cat[c.id],P2.cat[c.id])}</div></div>`).join("")}</div>
+  <section class="card"><div class="section-title"><h2>Overall daily score</h2><label class="row small muted" style="gap:.4rem"><input type="checkbox" id="st-ma" data-in="st-ma" ${ui.st.ma?"checked":""}> 7-day average</label></div><div class="chart" id="ch-overall"></div></section>
+  <section class="card"><div class="section-title"><h2>Categories</h2><div class="chips">${cats.map(c=>`<button class="chip" data-act="st-cat" data-id="${c.id}" aria-pressed="${!ui.st.hide.has(c.id)}"><span class="sw" style="background:${catColor(settings.daily,c.id)}"></span>${esc(c.name)}</button>`).join("")}</div></div><div class="chart" id="ch-cats"></div></section>
+  <div class="grid"><section class="card"><div class="section-title"><h2>Average daily score by month</h2></div><div class="chart" id="ch-months"></div></section>
+  <section class="card"><div class="section-title"><h2>By day of the week</h2></div><div class="chart" id="ch-dow"></div></section></div>
+  <section class="card"><div class="section-title"><h2>Calendar heatmap</h2>${legendScores()}</div><div id="ch-heat"></div></section>`;
+  const dayT = k => parse(k).getTime();
+  const xFmt = len<=31 ? (t=>fmtDay(ymd(new Date(t)),"short")) : len<=400 ? (t=>{const d=new Date(t);return `${MN[d.getMonth()].slice(0,3)} ${d.getDate()}`}) : (t=>{const d=new Date(t);return `${MN[d.getMonth()].slice(0,3)} ${String(d.getFullYear()).slice(2)}`});
+  const tipFmt = t => fmtDay(ymd(new Date(t)),"med") + " " + new Date(t).getFullYear();
+  mount("ch-overall", el => {
+    const pts = recs.map(r=>({t:dayT(r.key), y:r.s, key:r.key}));
+    const series = [{name:"Daily score", color:"var(--accent)", pts, area:true, noDots: pts.length>75}];
+    if (ui.st.ma && recs.length >= 7){ const ma = []; for (const r of recs){ const w = recs.filter(x=>x.key<=r.key && x.key>addDays(r.key,-7)); ma.push({t:dayT(r.key), y:avg(w.map(x=>x.s)), key:r.key}); } series.push({name:"7-day average", color:"var(--fg)", pts:ma, dash:true, width:1.5, noDots:true, opacity:.55}); }
+    lineChart(el, {series, t0:dayT(a), t1:dayT(b), xFmt, tipFmt, onPick:openDay, label:"Overall daily score"});
+  });
+  mount("ch-cats", el => {
+    const series = cats.filter(c=>!ui.st.hide.has(c.id)).map(c=>({name:c.name, color:catColor(settings.daily,c.id), pts:recs.filter(r=>r.rm[c.id]).map(r=>({t:dayT(r.key), y:norm(r.rm[c.id].v,r.rm[c.id].of), key:r.key})), noDots:recs.length>45}));
+    lineChart(el, {series, t0:dayT(a), t1:dayT(b), xFmt, tipFmt, onPick:openDay, label:"Daily categories", empty:"Choose a category above, or add some reviews in this range."});
+  });
+  mount("ch-months", el => {
+    let m0 = a.slice(0,7), m1 = b.slice(0,7); if (ui.st.range==="7"||ui.st.range==="30"||ui.st.range==="90"){ m0 = addMonths(m1,-5); }
+    const bars = []; for (let mk=m0; mk<=m1; mk=addMonths(mk,1)){ const rr = monthRecs(mk); const v = avg(rr.map(r=>r.s)); bars.push({label:monthName(mk,true), tip:monthLabel(mk), v, color:v!=null?bandVar(v):null, sub:`${rr.length} days`}); if (bars.length>36) break; }
+    barChart(el, {bars, label:"Monthly average"});
+  });
+  mount("ch-dow", el => {
+    const order = settings.weekStart===1 ? [1,2,3,4,5,6,0] : [0,1,2,3,4,5,6];
+    const bars = order.map(d=>{ const rr = recs.filter(r=>parse(r.key).getDay()===d); const v = avg(rr.map(r=>r.s)); return {label:DN[d].slice(0,3), tip:DN[d], v, color:v!=null?bandVar(v):null, sub:`${rr.length} days`}; });
+    barChart(el, {bars, label:"Average by weekday"});
+  });
+  mount("ch-heat", el => { const from = len>370 ? addDays(b,-364) : a; heatmap(el, {from, to:b, onPick:openDay, scrollEnd:true, showReviews:true}); });
+  return html;
+}
+function statsMonthly(){
+  const cats = activeMonthly();
+  const done = Object.keys(D().reviews).filter(hasReview).sort();
+  if (!done.length) return `<div class="card"><div class="empty"><h2>No monthly reviews yet</h2><p style="margin:0;max-width:44ch">Monthly statistics come from your end-of-month reviews, which rate ten broader areas of life.</p><button class="btn primary" data-act="goto-month" data-mk="${monthPrompt()?.mk || todayKey().slice(0,7)}">Start a monthly review</button></div></div>`;
+  const last = done[done.length-1], scores = done.map(mk=>({mk, s:monthScore(mk)})).filter(x=>x.s!=null);
+  const best = scores.length ? scores.reduce((p,c)=>c.s>p.s?c:p) : null;
+  if (!ui.st.b || !done.includes(ui.st.b)) ui.st.b = last;
+  if (!ui.st.a || !done.includes(ui.st.a)) ui.st.a = done.length>1 ? done[done.length-2] : last;
+  const A = ratingMap(D().reviews[ui.st.a]), B = ratingMap(D().reviews[ui.st.b]);
+  const nv = r => r ? norm(r.v, r.of) : null;
+  let up=0, down=0, same=0;
+  const rows = cats.map(c=>{ const x = nv(A[c.id]), y = nv(B[c.id]); if (x!=null&&y!=null){ if (y-x>0.05) up++; else if (y-x<-0.05) down++; else same++; } return {c,x,y}; });
+  const m12 = []; for (let i=11;i>=0;i--) m12.push(addMonths(last,-i));
+  let html = `<div class="row between"><span class="tag-monthly">Monthly reviews · ${done.length} completed</span></div>
+  <div class="tiles">
+    <div class="tile"><div class="label">Latest month score</div><div class="value">${f1(monthScore(last))}</div><div class="sub">${monthLabel(last)}</div></div>
+    <div class="tile"><div class="label">Average month score</div><div class="value">${f1(avg(scores.map(x=>x.s)))}</div><div class="sub">across ${scores.length} months</div></div>
+    <div class="tile"><div class="label">Highest month</div><div class="value">${best?f1(best.s):"—"}</div><div class="sub">${best?monthLabel(best.mk):""}</div></div>
+    <div class="tile"><div class="label">Reviews completed</div><div class="value">${done.length}</div><div class="sub">since ${monthLabel(done[0],true)}</div></div></div>
+  <section class="card"><div class="section-title"><h2>Category trends, last 12 months</h2><div class="chips">${cats.map(c=>`<button class="chip" data-act="st-mocat" data-id="${c.id}" aria-pressed="${!ui.st.moHide.has(c.id)}"><span class="sw" style="background:${catColor(settings.monthly,c.id)}"></span>${esc(c.short||c.name)}</button>`).join("")}</div></div><div class="chart" id="ch-mo-trend"></div></section>
+  <section class="card"><div class="section-title"><h2>Compare two months</h2><div class="row" style="gap:.5rem">
+    <select id="st-a" data-in="st-a" aria-label="First month">${done.map(mk=>`<option value="${mk}" ${mk===ui.st.a?"selected":""}>${monthLabel(mk)}</option>`).join("")}</select>
+    <span class="muted">vs</span>
+    <select id="st-b" data-in="st-b" aria-label="Second month">${done.map(mk=>`<option value="${mk}" ${mk===ui.st.b?"selected":""}>${monthLabel(mk)}</option>`).join("")}</select></div></div>
+    <div class="grid" style="align-items:start"><div><div class="legend" style="margin-bottom:.4rem"><span><i style="background:var(--c2);border-radius:50%"></i>${monthLabel(ui.st.a,true)}</span><span><i style="background:var(--mo);border-radius:50%"></i>${monthLabel(ui.st.b,true)}</span></div><div class="chart" id="ch-radar"></div></div>
+    <div><div class="small" style="margin-bottom:.5rem">${ui.st.a===ui.st.b?"Pick two different months to compare.":`<b>${up}</b> improved · <b>${down}</b> declined · <b>${same}</b> unchanged`}</div>
+      ${rows.map(({c,x,y})=>`<div class="kv"><span class="k">${esc(c.name)}</span><span class="row" style="gap:.45rem;flex-wrap:nowrap"><span class="num muted">${f1(x)}</span><span class="muted">→</span><span class="num">${f1(y)}</span><span style="min-width:3.6rem;text-align:right">${x!=null&&y!=null?deltaChip(y-x):""}</span></span></div>`).join("")}
+      <div class="kv"><span class="k" style="font-weight:600;color:var(--fg)">Month score</span><span class="row" style="gap:.45rem"><span class="num muted">${f1(monthScore(ui.st.a))}</span><span class="muted">→</span><span class="num">${f1(monthScore(ui.st.b))}</span>${monthScore(ui.st.a)!=null&&monthScore(ui.st.b)!=null?deltaChip(monthScore(ui.st.b)-monthScore(ui.st.a)):""}</span></div></div></div></section>
+  <section class="card"><div class="section-title"><h2>Month scores</h2><span class="muted small">Click a bar to open that review</span></div><div class="chart" id="ch-mo-bars"></div></section>`;
+  const mT = mk => parse(mk+"-15").getTime();
+  mount("ch-mo-trend", el => {
+    const series = cats.filter(c=>!ui.st.moHide.has(c.id)).map(c=>({name:c.short||c.name, color:catColor(settings.monthly,c.id), square:true,
+      pts:m12.map(mk=>{ const r = ratingMap(D().reviews[mk])[c.id]; return r ? {t:mT(mk), y:norm(r.v,r.of), key:mk} : null; }).filter(Boolean)}));
+    lineChart(el, {series, t0:mT(m12[0]), t1:mT(m12[11]), xFmt:t=>{const d=new Date(t);return MN[d.getMonth()].slice(0,3)}, tipFmt:t=>{const d=new Date(t);return MN[d.getMonth()]+" "+d.getFullYear()}, onPick:mk=>{ui.mo.mk=mk;go("month")}, label:"Monthly category trends", height:250, empty:"Choose categories above."});
+  });
+  mount("ch-radar", el => radarChart(el, {axes:cats.map(c=>c.short||c.name), sets:[{name:monthLabel(ui.st.a), color:"var(--c2)", values:cats.map(c=>nv(A[c.id])), dash:true},{name:monthLabel(ui.st.b), color:"var(--mo)", values:cats.map(c=>nv(B[c.id]))}]}));
+  mount("ch-mo-bars", el => barChart(el, {bars:m12.map(mk=>{ const s = monthScore(mk); return {label:monthName(mk,true), tip:monthLabel(mk), v:s, color:"var(--mo)", key:mk}; }), onPick:mk=>{ui.mo.mk=mk;go("month")}, label:"Monthly review scores"}));
+  return html;
+}
+
+/* ============ CALENDAR ============ */
+VIEWS.calendar = function(){
+  const t = todayKey();
+  if (!ui.cal.year) ui.cal.year = +t.slice(0,4);
+  if (!ui.cal.mk) ui.cal.mk = t.slice(0,7);
+  const y = ui.cal.year, view = ui.cal.view;
+  let html = `<header class="head"><div><h1>Calendar</h1><p>Each day is coloured by its overall daily score. Diamonds mark months with a monthly review.</p></div>
+    <div class="seg" role="group"><button data-act="cal-view" data-v="year" aria-pressed="${view==="year"}">Year</button><button data-act="cal-view" data-v="month" aria-pressed="${view==="month"}">Month</button></div></header>
+    ${legendScores()}`;
+  html += `<div class="grid" style="grid-template-columns:minmax(0,1fr)"><section class="card">`;
+  if (view==="year"){
+    html += `<div class="section-title"><div class="row" style="gap:.25rem"><button class="btn icon ghost" data-act="cal-y" data-d="-1" aria-label="Previous year">${ico("left")}</button><h2 class="num" style="font-size:1.2rem">${y}</h2><button class="btn icon ghost" data-act="cal-y" data-d="1" aria-label="Next year" ${y>=+t.slice(0,4)?"disabled":""}>${ico("right")}</button></div>
+      <span class="muted small">${scored().list.filter(r=>r.key.startsWith(String(y))).length} days reviewed</span></div><div id="cal-heat"></div>
+      <h3 style="margin:1.25rem 0 .6rem">Monthly reviews</h3><div class="mstrip">${Array.from({length:12},(_,i)=>{ const mk = `${y}-${pad(i+1)}`; const s = monthScore(mk); const done = hasReview(mk); const fut = mk > t.slice(0,7); const dv = avg(monthRecs(mk).map(r=>r.s));
+        return `<button class="mcell ${done?"done":""}" data-act="goto-month" data-mk="${mk}" ${fut?"disabled style='opacity:.4'":""}><span class="m">${monthName(mk,true)}</span><span class="v">${done&&s!=null?f1(s):"—"}</span><span class="tiny muted">${dv!=null?`days avg ${f1(dv)}`:"no days"}</span></button>`; }).join("")}</div>`;
+    mount("cal-heat", el => heatmap(el, {from:`${y}-01-01`, to:`${y}-12-31`, onPick:k=>{ ui.cal.sel = k; renderCalDetail(); highlightSel(); }, sel:ui.cal.sel, showReviews:true, cell:13}));
+  } else {
+    const mk = ui.cal.mk, first = mk+"-01", start = weekStartOf(first), n = dim(mk);
+    const by = scored().byKey;
+    const order = settings.weekStart===1 ? [1,2,3,4,5,6,0] : [0,1,2,3,4,5,6];
+    html += `<div class="section-title"><div class="row" style="gap:.25rem"><button class="btn icon ghost" data-act="cal-m" data-d="-1" aria-label="Previous month">${ico("left")}</button><h2 style="font-size:1.2rem;font-family:var(--serif);font-weight:500">${monthLabel(mk)}</h2><button class="btn icon ghost" data-act="cal-m" data-d="1" aria-label="Next month" ${mk>=t.slice(0,7)?"disabled":""}>${ico("right")}</button></div>
+      <span class="row small" style="gap:.5rem"><span class="tag-monthly">${hasReview(mk)?`Review done · ${f1(monthScore(mk))}`:"No monthly review"}</span><button class="btn sm" data-act="goto-month" data-mk="${mk}">${hasReview(mk)?"Open":"Start"}</button></span></div>
+      <div class="mgrid">${order.map(d=>`<div class="wd">${DN[d].slice(0,3)}</div>`).join("")}`;
+    const lead = daysBetween(start, first);
+    for (let i=0;i<lead;i++) html += `<div class="mday out"></div>`;
+    for (let d=1; d<=n; d++){ const k = `${mk}-${pad(d)}`, r = by[k], fut = k>t; const s = r?.s;
+      html += `<button class="mday ${s==null?"empty":""} ${k===t?"today":""} ${ui.cal.sel===k?"sel":""}" data-act="cal-pick" data-k="${k}" ${fut?"disabled style='opacity:.35'":""} style="${s!=null?`background:color-mix(in srgb, ${bandVar(s)} 30%, var(--surface));border-color:color-mix(in srgb, ${bandVar(s)} 60%, var(--border))`:""}" aria-label="${fmtDay(k)}${s!=null?", score "+f1(s):", no review"}"><span class="n">${d}</span>${s!=null?`<span class="s">${f1(s)}</span>`:r?`<span class="tiny muted">notes</span>`:""}</button>`; }
+    html += `</div>`;
+  }
+  html += `</section><section class="card" id="cal-detail"></section></div>`;
+  after.push(renderCalDetail);
+  return html;
+};
+function highlightSel(){ $$(".hm rect.sel").forEach(r=>r.classList.remove("sel")); const r = $(`.hm rect[data-k="${ui.cal.sel}"]`); if (r) r.classList.add("sel"); }
+function renderCalDetail(){ const el = $("#cal-detail"); if (!el) return; const k = ui.cal.sel; el.innerHTML = k ? dayDetail(k) : `<div class="muted small">Select a day to see its score, ratings and notes.</div>`; }
+
+/* day detail */
+function dayDetail(k){
+  const e = D().days[k], s = scoreOf(e), rm = ratingMap(e);
+  if (!e) return `<div class="row between"><div><div class="entry-date">${fmtDay(k)}</div><div class="muted small">No review for this day.</div></div><button class="btn primary" data-act="goto-day" data-k="${k}">Add review</button></div>`;
+  const ids = [...activeDaily().map(c=>c.id), ...Object.keys(rm).filter(id=>!activeDaily().some(c=>c.id===id))];
+  return `<div class="row between"><div><div class="entry-date">${fmtDay(k)}</div><span class="tag-daily">Daily review</span></div><button class="btn" data-act="goto-day" data-k="${k}">Edit</button></div>
+    <div class="row" style="gap:1.25rem;align-items:center;flex-wrap:nowrap">${ring(s, 96, 9, s==null?"":`${Object.keys(rm).length} rated`)}<div class="stack" style="flex:1;gap:.35rem;min-width:0">
+    ${ids.map(id=>{ const r = rm[id]; const v = r?norm(r.v,r.of):null; return `<div class="row" style="gap:.5rem;flex-wrap:nowrap"><span class="small" style="width:7.5rem;flex:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(catName(settings.daily,id))}</span><span class="bar"><i style="width:${v==null?0:v*10}%;background:${catColor(settings.daily,id)}"></i></span><span class="num small" style="width:2.4rem;text-align:right">${r?`${r.v}/${r.of}`:"—"}</span></div>`; }).join("")}</div></div>
+    ${(e.tags||[]).length?`<div class="chips">${e.tags.map(x=>`<span class="chip">${esc(x)}</span>`).join("")}</div>`:""}
+    ${REFLECT_DAY.filter(([f])=>(e[f]||"").trim()).map(([f,l])=>`<div class="qa"><div class="q">${l}</div><div class="a">${esc(e[f])}</div></div>`).join("")}
+    ${(e.notes||"").trim()?`<div class="qa"><div class="q">Journal</div><div class="a">${esc(e.notes)}</div></div>`:""}`;
+}
+function openDay(k){
+  const p = $("#sheet-panel");
+  p.innerHTML = `<div class="row between"><span></span><button class="btn icon ghost" data-act="sheet-close" aria-label="Close">${ico("x")}</button></div>` + dayDetail(k);
+  $("#sheet").hidden = false; p.querySelector("button")?.focus();
+}
+function closeSheet(){ $("#sheet").hidden = true; }
+
+/* ============ JOURNAL ============ */
+VIEWS.journal = function(){
+  const j = ui.jr, q = j.q.trim().toLowerCase();
+  const usedTags = new Set(); for (const e of Object.values(D().days)) (e.tags||[]).forEach(t=>usedTags.add(t));
+  let items = [];
+  if (j.type!=="monthly") for (const k of Object.keys(D().days)){ const e = D().days[k];
+    if (j.from && k<j.from) continue; if (j.to && k>j.to) continue;
+    if (j.tags.size && ![...j.tags].every(t=>(e.tags||[]).includes(t))) continue;
+    if (q){ const hay = [...REFLECT_DAY.map(([f])=>e[f]||""), e.notes||"", ...(e.tags||[])].join(" ").toLowerCase(); if (!hay.includes(q)) continue; }
+    items.push({type:"d", key:k, sort:k});
+  }
+  if (j.type!=="daily" && !j.tags.size) for (const mk of Object.keys(D().reviews)){ const rv = D().reviews[mk];
+    if (j.from && mk+"-31"<j.from) continue; if (j.to && mk+"-01">j.to) continue;
+    if (q){ const hay = [...Object.values(rv.q||{}), ...Object.values(rv.notes||{}).flatMap(n=>Object.values(n||{}))].join(" ").toLowerCase(); if (!hay.includes(q)) continue; }
+    items.push({type:"m", key:mk, sort:mk+"-99"});
+  }
+  items.sort((a,b)=>b.sort.localeCompare(a.sort));
+  const total = items.length; items = items.slice(0, j.limit);
+  let html = `<header class="head"><div><h1>Journal</h1><p>Every daily and monthly reflection, newest first.</p></div>
+    <div class="seg" role="group">${[["all","All"],["daily","Daily"],["monthly","Monthly"]].map(([v,l])=>`<button data-act="jr-type" data-v="${v}" aria-pressed="${j.type===v}">${l}</button>`).join("")}</div></header>
+  <section class="card stack"><div class="filters">
+    <label class="field f-search">Search<input type="search" id="jr-q" value="${esc(j.q)}" placeholder="Words or phrases…" data-in="jr-q"></label>
+    <label class="field">From<input type="date" id="jr-from" value="${j.from}" data-in="jr-from"></label>
+    <label class="field">To<input type="date" id="jr-to" value="${j.to}" data-in="jr-to"></label></div>
+    ${usedTags.size?`<div class="chips"><span class="small muted" style="align-self:center">Tags:</span>${[...usedTags].sort().map(t=>`<button class="chip" data-act="jr-tag" data-t="${esc(t)}" aria-pressed="${j.tags.has(t)}">${esc(t)}</button>`).join("")}${j.tags.size||j.q||j.from||j.to?`<button class="btn sm ghost" data-act="jr-clear">Clear filters</button>`:""}</div>`:""}
+  </section>
+  <div class="muted small">${total} entr${total===1?"y":"ies"}${j.tags.size&&j.type!=="daily"?" · monthly reviews are hidden while filtering by tag":""}</div>`;
+  if (!total) html += `<div class="card"><div class="empty"><h2>${Object.keys(D().days).length||Object.keys(D().reviews).length?"No matching entries":"No entries yet"}</h2><p style="margin:0">${Object.keys(D().days).length?"Try a different word, tag or date range.":"Reflections you write in daily and monthly reviews collect here."}</p></div></div>`;
+  let lastM = null;
+  const hl = s => { const t = esc(s); if (!q) return t; const qe = esc(j.q.trim()).replace(/[.*+?^${}()|[\]\\]/g,"\\$&"); return t.replace(new RegExp(qe,"gi"), m=>`<mark>${m}</mark>`); };
+  for (const it of items){
+    const mk = it.key.slice(0,7); if (mk!==lastM){ lastM = mk; html += `<div class="month-sep">${monthLabel(mk)}</div>`; }
+    const conf = j.confirm === it.type+it.key;
+    const actions = `<div class="row" style="gap:.3rem">${conf?`<span class="confirm-inline">Delete? <button class="btn sm danger" data-act="jr-del-yes" data-type="${it.type}" data-k="${it.key}">Delete</button><button class="btn sm" data-act="jr-del-no">Cancel</button></span>`:
+      `<button class="btn sm ghost" data-act="${it.type==="d"?"goto-day":"goto-month"}" data-k="${it.key}" data-mk="${it.key}">Edit</button><button class="btn sm ghost danger" data-act="jr-del" data-type="${it.type}" data-k="${it.key}">Delete</button>`}</div>`;
+    if (it.type==="d"){
+      const e = D().days[it.key], s = scoreOf(e);
+      const parts = [...REFLECT_DAY.filter(([f])=>(e[f]||"").trim()).map(([f,l])=>[l,e[f]]), ...((e.notes||"").trim()?[["Journal",e.notes]]:[])];
+      html += `<article class="card entry"><div class="entry-head"><div class="row" style="gap:.6rem"><span class="entry-date">${fmtDay(it.key,"med")}</span>${s!=null?pill(s):""}<span class="tag-daily">Daily</span></div>${actions}</div>
+        ${(e.tags||[]).length?`<div class="chips">${e.tags.map(t=>`<span class="chip">${hl(t)}</span>`).join("")}</div>`:""}
+        ${parts.length?parts.map(([l,v])=>`<div class="qa"><div class="q">${l}</div><div class="a">${hl(v)}</div></div>`).join(""):`<div class="muted small">Ratings only, no written reflection.</div>`}</article>`;
+    } else {
+      const rv = D().reviews[it.key], s = scoreOf(rv);
+      const parts = REFLECT_MONTH.filter(([f])=>((rv.q||{})[f]||"").trim()).map(([f,l])=>[l,rv.q[f]]);
+      const cn = Object.entries(rv.notes||{}).flatMap(([id,n])=>CAT_NOTES.filter(([f])=>(n[f]||"").trim()).map(([f,l])=>[`${catName(settings.monthly,id)} · ${l}`, n[f]]));
+      html += `<article class="card entry" style="border-left:3px solid var(--mo)"><div class="entry-head"><div class="row" style="gap:.6rem"><span class="entry-date">${monthLabel(it.key)}</span>${s!=null?pill(s):""}<span class="tag-monthly">Monthly</span></div>${actions}</div>
+        ${[...parts, ...cn].length?[...parts, ...cn].map(([l,v])=>`<div class="qa"><div class="q">${esc(l)}</div><div class="a">${hl(v)}</div></div>`).join(""):`<div class="muted small">Ratings only, no written reflection.</div>`}</article>`;
+    }
+  }
+  if (total > j.limit) html += `<div class="row" style="justify-content:center"><button class="btn" data-act="jr-more">Show more (${total-j.limit} left)</button></div>`;
+  return html;
+};
+
+/* ============ INSIGHTS ============ */
+function pearson(xs, ys){ const n = xs.length; const mx = avg(xs), my = avg(ys); let sxy=0,sx=0,sy=0; for (let i=0;i<n;i++){ const dx=xs[i]-mx, dy=ys[i]-my; sxy+=dx*dy; sx+=dx*dx; sy+=dy*dy; } return (sx===0||sy===0) ? null : sxy/Math.sqrt(sx*sy); }
+let _ins = {v:-1, list:[]};
+function computeInsights(){
+  if (_ins.v===ver) return _ins.list;
+  const out = [], L = scored().list, cats = activeDaily(), t = todayKey(), cmk = t.slice(0,7);
+  const mAvg = (mk, id) => { const rr = monthRecs(mk); const vals = id ? rr.filter(r=>r.rm[id]).map(r=>norm(r.rm[id].v,r.rm[id].of)) : rr.map(r=>r.s); return {n:vals.length, v:avg(vals)}; };
+  // month on month
+  const curOk = mAvg(cmk).n >= 5; const m1 = curOk ? cmk : addMonths(cmk,-1), m0 = addMonths(m1,-1);
+  const dims = [{id:null,name:"overall daily score"}, ...cats.map(c=>({id:c.id,name:c.name.toLowerCase()}))];
+  for (const d of dims){ const a = mAvg(m1,d.id), b = mAvg(m0,d.id);
+    if (a.n>=5 && b.n>=5 && b.v>0){ const pct = (a.v-b.v)/b.v*100; if (Math.abs(pct)>=5) out.push({w:Math.abs(pct)/10+(d.id?0:1), kind:"Month on month", tone:pct>0?"up":"down",
+      title:`Your average ${d.name} ${m1===cmk?"this month":"in "+monthName(m1)} is ${f1(a.v)}, ${pct>0?"up":"down"} ${Math.abs(Math.round(pct))}% on ${monthName(m0)} (${f1(b.v)}).`, detail:`Based on ${a.n} and ${b.n} reviewed days.`}); } }
+  // week on week
+  const ws = weekStartOf(t); const cw = inRange(ws, addDays(ws,6)), pw = inRange(addDays(ws,-7), addDays(ws,-1));
+  if (cw.length>=4 && pw.length>=4){ const d = avg(cw.map(r=>r.s)) - avg(pw.map(r=>r.s)); if (Math.abs(d)>=0.5) out.push({w:1.2, kind:"This week", tone:d>0?"up":"down", title:`This week is averaging ${f1(avg(cw.map(r=>r.s)))}, ${Math.abs(d).toFixed(1)} points ${d>0?"higher":"lower"} than last week.`, detail:`${cw.length} days this week, ${pw.length} last week.`}); }
+  // three-month trend
+  const lastFull = curOk ? cmk : addMonths(cmk,-1); const three = [addMonths(lastFull,-2), addMonths(lastFull,-1), lastFull];
+  for (const d of dims.slice(1)){ const v = three.map(mk=>mAvg(mk,d.id)); if (v.every(x=>x.n>=5)){ const up = v[1].v-v[0].v>=0.2 && v[2].v-v[1].v>=0.2, dn = v[0].v-v[1].v>=0.2 && v[1].v-v[2].v>=0.2;
+    if (up||dn) out.push({w:2.5, kind:"Trend", tone:up?"up":"down", title:`Your ${d.name} rating has ${up?"improved":"fallen"} for three months in a row: ${v.map(x=>f1(x.v)).join(" → ")}.`, detail:`${three.map(mk=>monthName(mk,true)).join(", ")} · monthly averages of daily ratings.`}); } }
+  // best month
+  const months = monthsWithDays().map(mk=>({mk, ...mAvg(mk)})).filter(m=>m.n>=7);
+  if (months.length>=3){ const b = months.reduce((p,c)=>c.v>p.v?c:p); out.push({w:1.5, kind:"Record", tone:"info", title:`${monthLabel(b.mk)} is your highest-rated month so far, averaging ${f1(b.v)}.`, detail:`Compared across ${months.length} months with at least 7 reviewed days.`}); }
+  // correlations (strongest two only)
+  const corr = [];
+  for (let i=0;i<cats.length;i++) for (let j=i+1;j<cats.length;j++){
+    const A = cats[i], B = cats[j]; const both = L.filter(r=>r.rm[A.id]&&r.rm[B.id]);
+    if (both.length < 14) continue;
+    const r = pearson(both.map(x=>norm(x.rm[A.id].v,x.rm[A.id].of)), both.map(x=>norm(x.rm[B.id].v,x.rm[B.id].of)));
+    if (r!=null && Math.abs(r) >= 0.5) corr.push({w:2+Math.abs(r), kind:"Pattern", tone:"info",
+      title:`On days you rated ${A.name.toLowerCase()} higher, ${B.name.toLowerCase()} also tended to be ${r>0?"higher":"lower"}.`,
+      detail:`Correlation ${r.toFixed(2)} across ${both.length} days. This shows the two move together, not that one causes the other.`});
+  }
+  corr.sort((a,b)=>b.w-a.w); out.push(...corr.slice(0,2));
+  // tags
+  const tagDays = {}; for (const r of L) for (const tg of (r.e.tags||[])) (tagDays[tg] ||= []).push(r.s);
+  const allAvg = avg(L.map(r=>r.s));
+  for (const [tg, arr] of Object.entries(tagDays)){ if (arr.length<5 || L.length-arr.length<5) continue;
+    const other = avg(L.filter(r=>!(r.e.tags||[]).includes(tg)).map(r=>r.s)), a = avg(arr);
+    if (Math.abs(a-other) >= 0.6) out.push({w:1.8+Math.abs(a-other)/2, kind:"Tags", tone:a>other?"up":"down", title:`Days tagged “${tg}” averaged ${f1(a)}, compared with ${f1(other)} on other days.`, detail:`${arr.length} tagged days. Tags describe the day; they don't prove what caused the score.`}); }
+  // weekday
+  if (L.length>=28){ const by = [0,1,2,3,4,5,6].map(d=>{ const rr = L.filter(r=>parse(r.key).getDay()===d); return {d, n:rr.length, v:avg(rr.map(r=>r.s))}; });
+    if (by.every(x=>x.n>=3)){ const hi = by.reduce((p,c)=>c.v>p.v?c:p), lo = by.reduce((p,c)=>c.v<p.v?c:p); if (hi.v-lo.v>=0.6) out.push({w:1.6, kind:"Weekly rhythm", tone:"info", title:`${DN[hi.d]}s are usually your best days (${f1(hi.v)}) and ${DN[lo.d]}s your lowest (${f1(lo.v)}).`, detail:`Across ${L.length} reviewed days.`}); } }
+  // monthly review changes
+  const done = Object.keys(D().reviews).filter(hasReview).sort();
+  if (done.length>=2){ const a = done[done.length-2], b = done[done.length-1]; const A = ratingMap(D().reviews[a]), B = ratingMap(D().reviews[b]);
+    let best=null, worst=null; for (const c of activeMonthly()){ if (!A[c.id]||!B[c.id]) continue; const d = norm(B[c.id].v,B[c.id].of)-norm(A[c.id].v,A[c.id].of); if (!best||d>best.d) best={c,d,x:A[c.id],y:B[c.id]}; if (!worst||d<worst.d) worst={c,d,x:A[c.id],y:B[c.id]}; }
+    if (best && best.d>=2) out.push({w:2.2, kind:"Monthly review", tone:"up", title:`In your ${monthName(b)} review, ${best.c.name.toLowerCase()} rose from ${best.x.v} to ${best.y.v} compared with ${monthName(a)}.`, detail:"From your monthly ratings, not daily scores."});
+    if (worst && worst.d<=-2) out.push({w:2.1, kind:"Monthly review", tone:"down", title:`${worst.c.name} dropped from ${worst.x.v} to ${worst.y.v} between your ${monthName(a)} and ${monthName(b)} reviews.`, detail:"From your monthly ratings, not daily scores."}); }
+  if (allAvg!=null && L.length>=30){ const last30 = inRange(addDays(t,-29), t); if (last30.length>=15){ const d = avg(last30.map(r=>r.s)) - allAvg; if (Math.abs(d)>=0.4) out.push({w:1, kind:"Compared with usual", tone:d>0?"up":"down", title:`Your last 30 days average ${f1(avg(last30.map(r=>r.s)))}, ${d>0?"above":"below"} your all-time average of ${f1(allAvg)}.`, detail:`${last30.length} of the last 30 days reviewed.`}); } }
+  out.sort((a,b)=>b.w-a.w);
+  _ins = {v:ver, list:out};
+  return out;
+}
+VIEWS.insights = function(){
+  const ins = computeInsights(), n = scored().list.length, mr = Object.keys(D().reviews).filter(hasReview).length;
+  const needs = [
+    [n>=14, `Patterns between categories need 14 reviewed days`, `${Math.min(n,14)} / 14`],
+    [n>=28, `Weekday rhythms need 28 reviewed days`, `${Math.min(n,28)} / 28`],
+    [mr>=2, `Monthly review comparisons need 2 monthly reviews`, `${Math.min(mr,2)} / 2`]
+  ].filter(x=>!x[0]);
+  return `<header class="head"><div><h1>Insights</h1><p>Patterns found in your own ratings. Each one shows how much data it rests on.</p></div></header>
+    ${ins.length ? `<div class="grid">${ins.map(i=>`<article class="card insight ${i.tone}"><div class="kind"><i></i>${esc(i.kind)}</div><div class="t">${esc(i.title)}</div><div class="d">${esc(i.detail)}</div></article>`).join("")}</div>`
+      : `<div class="card"><div class="empty"><h2>Not enough data yet</h2><p style="margin:0;max-width:46ch">DayRank only reports a pattern when there's enough data behind it. Keep reviewing and insights will appear here.</p></div></div>`}
+    ${needs.length ? `<section class="card"><h3 style="margin-bottom:.6rem">Still collecting</h3>${needs.map(([,l,p])=>`<div class="kv"><span class="k">${l}</span><span class="num small">${p}</span></div>`).join("")}</section>` : ""}`;
+};
+
+/* ============ RECORDS ============ */
+function records(){
+  const L = scored().list, cats = activeDaily();
+  const rec = {};
+  if (L.length) rec.day = L.reduce((p,c)=>c.s>=p.s?c:p);
+  const weeks = {}; for (const r of L) (weeks[weekStartOf(r.key)] ||= []).push(r.s);
+  const wk = Object.entries(weeks).filter(([,a])=>a.length>=3).map(([k,a])=>({k, v:avg(a), n:a.length}));
+  if (wk.length) rec.week = wk.reduce((p,c)=>c.v>=p.v?c:p);
+  const ms = monthsWithDays().map(mk=>({mk, rr:monthRecs(mk)})).filter(m=>m.rr.length>=7);
+  if (ms.length){ rec.month = ms.map(m=>({mk:m.mk, v:avg(m.rr.map(r=>r.s)), n:m.rr.length})).reduce((p,c)=>c.v>=p.v?c:p);
+    rec.cat = cats.map(c=>{ const best = ms.map(m=>({mk:m.mk, v:avg(m.rr.filter(r=>r.rm[c.id]).map(r=>norm(r.rm[c.id].v,r.rm[c.id].of)))})).filter(x=>x.v!=null); return {c, best: best.length ? best.reduce((p,q)=>q.v>=p.v?q:p) : null}; }); }
+  const rs = Object.keys(D().reviews).filter(hasReview).map(mk=>({mk, s:monthScore(mk)})).filter(x=>x.s!=null);
+  if (rs.length) rec.review = rs.reduce((p,c)=>c.s>=p.s?c:p);
+  rec.st = streaks(); rec.monthly = Object.keys(D().reviews).filter(hasReview).length;
+  return rec;
+}
+VIEWS.records = function(){
+  const r = records(), st = r.st;
+  const tile = (label, value, sub, act="") => `<div class="tile"${act}><div class="label">${label}</div><div class="value">${value}</div><div class="sub">${sub||""}</div></div>`;
+  return `<header class="head"><div><h1>Records</h1><p>Personal bests, kept quietly. Weeks need 3 reviewed days and months need 7 to count.</p></div></header>
+  <h3>Daily reviews</h3>
+  <div class="tiles">
+    ${tile("Highest daily score", r.day?f1(r.day.s):"—", r.day?`<a href="#" data-act="open-day" data-k="${r.day.key}">${fmtDay(r.day.key,"med")} ${r.day.key.slice(0,4)}</a>`:"")}
+    ${tile("Best week", r.week?f1(r.week.v):"—", r.week?`Week of ${fmtDay(r.week.k,"short")} ${r.week.k.slice(0,4)} · ${r.week.n} days`:"")}
+    ${tile("Best month", r.month?f1(r.month.v):"—", r.month?`${monthLabel(r.month.mk)} · ${r.month.n} days`:"")}
+    ${tile("Longest streak", st.longest, st.longEnd?`ended ${fmtDay(st.longEnd,"short")} · current ${st.cur}`:"consecutive days")}
+    ${tile("Days reviewed", st.total, "all time")}
+  </div>
+  ${r.cat ? `<h3>Best month for each category</h3><div class="tiles">${r.cat.map(({c,best})=>tile(`Highest average ${esc(c.name.toLowerCase())}`, best?f1(best.v):"—", best?monthLabel(best.mk):"")).join("")}</div>` : ""}
+  <h3>Monthly reviews</h3>
+  <div class="tiles">${tile("Highest monthly review score", r.review?f1(r.review.s):"—", r.review?monthLabel(r.review.mk):"")}${tile("Monthly reviews completed", r.monthly, "all time")}${tile("Total reviews", st.total + r.monthly, "daily and monthly")}</div>
+  <section class="card"><div class="section-title"><h2>Milestones</h2><span class="muted small">Days tracked: ${st.total}</span></div>
+  <div class="ms">${MILESTONES.map(m=>{ const got = st.total>=m; return `<div class="ms-item ${got?"got":""}"><div class="n">${m}</div><div class="small">${m===365?"A full year":"days tracked"}</div>${got?`<span class="tiny" style="color:var(--accent)">${ico("check").replace('<svg','<svg width="14" height="14"')} Reached</span>`:`<div class="bar" style="width:80%"><i style="width:${st.total/m*100}%;background:var(--accent)"></i></div>`}</div>`; }).join("")}
+  ${MONTH_MS.map(m=>{ const got = r.monthly>=m; return `<div class="ms-item ${got?"got":""}"><div class="n">${m}</div><div class="small">monthly review${m>1?"s":""}</div>${got?`<span class="tiny" style="color:var(--accent)">Reached</span>`:`<div class="bar" style="width:80%"><i style="width:${r.monthly/m*100}%;background:var(--mo)"></i></div>`}</div>`; }).join("")}</div></section>`;
+};
+function checkMilestones(){
+  if (demo) return;
+  const n = streaks().total, mr = Object.keys(real.reviews).filter(hasReview).length;
+  const hits = [...MILESTONES.filter(m=>n>=m).map(m=>"d"+m), ...MONTH_MS.filter(m=>mr>=m).map(m=>"m"+m)].filter(id=>!settings.seen.includes(id));
+  if (!hits.length) return;
+  settings.seen.push(...hits); saveSettings();
+  const top = hits[hits.length-1];
+  const msg = top[0]==="d" ? `${top.slice(1)} days tracked. Nicely done.` : `${top.slice(1)} monthly review${top.slice(1)==="1"?"":"s"} completed.`;
+  toast(msg, true);
+}
+
+/* ============ SETTINGS ============ */
+VIEWS.prefs = function(){
+  const tab = ui.set.tab;
+  const tabs = [["appearance","Appearance"],["categories","Categories"],["dashboard","Dashboard"],["general","Preferences"],["data","Data"]];
+  return `<header class="head"><div><h1>Settings</h1></div><div class="seg" role="group">${tabs.map(([v,l])=>`<button data-act="set-tab" data-v="${v}" aria-pressed="${tab===v}">${l}</button>`).join("")}</div></header>${SET[tab]()}`;
+};
+const SET = {
+  appearance(){
+    const m = effMode();
+    const cu = settings.custom[m] || {};
+    const th = (THEMES[settings.theme]||THEMES.graphite)[m];
+    const accents = ["#4f5bd5","#2563eb","#0a7ea0","#2c7a4c","#7556db","#c2417a","#d0602b","#111111"];
+    return `<section class="card"><div class="preview-box">${ring(7.6, 92, 9, "Preview")}<div class="stack" style="gap:.5rem"><div style="font-family:var(--serif);font-size:1.2rem">How things will look</div>
+      <div class="row" style="gap:.4rem"><span class="btn sm primary">Primary</span><span class="chip" aria-pressed="true">Tag</span>${pill(3.2)}${pill(5)}${pill(6.4)}${pill(8)}${pill(9.2)}</div>
+      <div class="pal">${paletteColors().map(c=>`<i style="background:${c}"></i>`).join("")}</div></div></div>
+    <div class="set-row"><div class="lbl">Mode<small>System follows your device.</small></div><div class="seg" role="group">${[["system","System"],["light","Light"],["dark","Dark"]].map(([v,l])=>`<button data-act="ap-mode" data-v="${v}" aria-pressed="${settings.mode===v}">${l}</button>`).join("")}</div></div>
+    <div class="set-row"><div class="lbl">Theme<small>Each theme has a light and dark version.</small></div><div class="themes">${Object.entries(THEMES).map(([id,t])=>{ const v = t[m]; return `<button class="theme-btn" data-act="ap-theme" data-v="${id}" aria-pressed="${settings.theme===id}"><span class="theme-sw"><i style="background:${v.bg}"></i><i style="background:${v.surface}"></i><i style="background:${v.accent}"></i></span>${t.name}</button>`; }).join("")}</div></div>
+    <div class="set-row"><div class="lbl">Accent colour</div><div class="swatches">${accents.map(c=>`<button class="swatch" style="background:${c}" data-act="ap-accent" data-v="${c}" aria-pressed="${settings.accent===c}" aria-label="Accent ${c}"></button>`).join("")}
+      <input type="color" id="ap-accent" value="${curAccent()}" data-in="ap-accent" aria-label="Custom accent colour">${settings.accent?`<button class="btn sm ghost" data-act="ap-accent" data-v="">Use theme accent</button>`:""}</div></div>
+    <div class="set-row"><div class="lbl">Background colour<small>For ${m} mode.</small></div><div class="row"><input type="color" id="ap-bg" value="${cu.bg||th.bg}" data-in="ap-bg" aria-label="Background colour">${cu.bg?`<button class="btn sm ghost" data-act="ap-reset" data-v="bg">Reset</button>`:""}</div></div>
+    <div class="set-row"><div class="lbl">Card colour<small>For ${m} mode.</small></div><div class="row"><input type="color" id="ap-card" value="${cu.card||th.surface}" data-in="ap-card" aria-label="Card colour">${cu.card?`<button class="btn sm ghost" data-act="ap-reset" data-v="card">Reset</button>`:""}</div></div>
+    <div class="set-row"><div class="lbl">Chart colours</div><div class="stack" style="gap:.5rem">${Object.entries(PALETTES).map(([id,p])=>{ const cs = p.c || (()=>{ const [h,s]=hexToHsl(curAccent()); return [0,1,2,3,4,5,6,7].map(i=>hslToHex((h+i*28)%360, clamp(s,45,80), m==="dark"?62+(i%2)*8:44+(i%2)*10)); })();
+      return `<button class="btn" style="justify-content:space-between;${settings.palette===id?"outline:2px solid var(--accent)":""}" data-act="ap-pal" data-v="${id}" aria-pressed="${settings.palette===id}"><span>${p.name}</span><span class="pal">${cs.map(c=>`<i style="background:${c}"></i>`).join("")}</span></button>`; }).join("")}</div></div>
+    <div class="set-row"><div class="lbl">Card style</div><div class="seg" role="group">${[["elevated","Elevated"],["outlined","Outlined"],["flat","Flat"]].map(([v,l])=>`<button data-act="ap-card-style" data-v="${v}" aria-pressed="${settings.cardStyle===v}">${l}</button>`).join("")}</div></div>
+    <div class="set-row"><div class="lbl">Spacing</div><div class="seg" role="group">${[["comfortable","Comfortable"],["compact","Compact"]].map(([v,l])=>`<button data-act="ap-density" data-v="${v}" aria-pressed="${settings.density===v}">${l}</button>`).join("")}</div></div>
+    <div class="set-row"><div class="lbl">Corner radius<small class="num">${settings.radius}px</small></div><input type="range" min="0" max="24" step="1" value="${settings.radius}" id="ap-radius" data-in="ap-radius" aria-label="Corner radius"></div>
+    <div class="set-row"><div class="lbl">Text size<small class="num">${Math.round(settings.fontScale*100)}%</small></div><input type="range" min="0.85" max="1.25" step="0.05" value="${settings.fontScale}" id="ap-font" data-in="ap-font" aria-label="Text size"></div>
+    <div class="row" style="justify-content:flex-end;margin-top:.5rem"><button class="btn ghost" data-act="ap-reset-all">Reset appearance</button></div></section>`;
+  },
+  categories(){
+    const list = (kind) => { const arr = settings[kind]; const act = arr.filter(c=>!c.archived), arch = arr.filter(c=>c.archived);
+      return `<div>${act.map((c,i)=>`<div class="cat-row"><div class="mv"><button data-act="cat-move" data-kind="${kind}" data-id="${c.id}" data-d="-1" aria-label="Move up" ${i===0?"disabled":""}>▲</button><button data-act="cat-move" data-kind="${kind}" data-id="${c.id}" data-d="1" aria-label="Move down" ${i===act.length-1?"disabled":""}>▼</button></div>
+        <div class="fields"><input type="text" id="cn-${kind}-${c.id}" value="${esc(c.name)}" data-in="cat-name" data-kind="${kind}" data-id="${c.id}" aria-label="Category name">
+        ${kind==="daily"?`<input type="text" id="cq-${c.id}" value="${esc(c.q||"")}" placeholder="Question shown in the review" data-in="cat-q" data-id="${c.id}" aria-label="Question">`:`<input type="text" id="cs-${c.id}" value="${esc(c.short||"")}" placeholder="Short label for charts" data-in="cat-short" data-id="${c.id}" aria-label="Short label">`}</div>
+        <div class="end"><select id="co-${kind}-${c.id}" data-in="cat-of" data-kind="${kind}" data-id="${c.id}" aria-label="Rating scale">${[5,10,100].map(n=>`<option value="${n}" ${(c.of||10)===n?"selected":""}>1–${n}</option>`).join("")}</select>
+        <button class="btn sm ghost danger" data-act="cat-archive" data-kind="${kind}" data-id="${c.id}" ${act.length<=1?"disabled":""}>Remove</button></div></div>`).join("")}</div>
+        <div class="row" style="margin-top:.75rem;flex-wrap:nowrap"><input type="text" id="new-${kind}" placeholder="New category name"><button class="btn" data-act="cat-add" data-kind="${kind}">Add</button></div>
+        ${arch.length?`<div style="margin-top:1rem"><h3 style="margin-bottom:.4rem">Removed</h3>${arch.map(c=>`<div class="kv"><span class="k">${esc(c.name)}</span><button class="btn sm" data-act="cat-restore" data-kind="${kind}" data-id="${c.id}">Restore</button></div>`).join("")}</div>`:""}`; };
+    return `<div class="banner"><div>Removing a category hides it from new reviews. Past ratings stay in your history and still count toward those days' scores. Changing a scale only affects new ratings; everything is converted to a score out of 10 for averages.</div></div>
+    <div class="grid"><section class="card"><div class="section-title"><h2>Daily categories</h2><span class="tag-daily">Daily</span></div>${list("daily")}</section>
+    <section class="card"><div class="section-title"><h2>Monthly categories</h2><span class="tag-monthly">Monthly</span></div>${list("monthly")}</section></div>`;
+  },
+  dashboard(){
+    const o = settings.dash.order;
+    return `<section class="card"><div class="section-title"><h2>Dashboard widgets</h2><button class="btn sm" data-act="dash-reset">Reset</button></div>
+      ${o.map((id,i)=>{ const hid = settings.dash.hidden.includes(id); return `<div class="kv"><span class="row" style="gap:.4rem"><button class="btn sm ghost icon" data-act="w-move" data-id="${id}" data-d="-1" ${i===0?"disabled":""} aria-label="Move up">${ico("up")}</button><button class="btn sm ghost icon" data-act="w-move" data-id="${id}" data-d="1" ${i===o.length-1?"disabled":""} aria-label="Move down">${ico("down")}</button><span style="${hid?"color:var(--muted)":""}">${WIDGETS[id].name}</span></span><button class="btn sm" data-act="w-hide" data-id="${id}">${hid?"Show":"Hide"}</button></div>`; }).join("")}
+      <div class="muted small" style="margin-top:.75rem">You can also choose Customise on the dashboard and drag widgets into place.</div></section>`;
+  },
+  general(){
+    return `<section class="card">
+      <div class="set-row"><div class="lbl">Week starts on</div><div class="seg" role="group"><button data-act="g-week" data-v="1" aria-pressed="${settings.weekStart===1}">Monday</button><button data-act="g-week" data-v="0" aria-pressed="${settings.weekStart===0}">Sunday</button></div></div>
+      <div class="set-row"><div class="lbl">Day ends at<small>Reviews made before this time count for the previous day, so a late-night review still lands on the right date.</small></div>
+        <select id="g-daystart" data-in="g-daystart" style="width:auto">${[0,1,2,3,4,5,6].map(h=>`<option value="${h}" ${settings.dayStart===h?"selected":""}>${h===0?"Midnight":h+":00 am"}</option>`).join("")}</select></div>
+      <div class="set-row"><div class="lbl">Suggested tags<small>Shown in every daily review.</small></div><div class="stack" style="gap:.5rem"><div class="chips">${settings.tags.map(t=>`<span class="chip">${esc(t)}<button class="btn ghost" style="min-height:0;padding:0 0 0 .2rem;border:0" data-act="g-tag-del" data-t="${esc(t)}" aria-label="Remove ${esc(t)}">×</button></span>`).join("")}</div>
+        <div class="row" style="flex-wrap:nowrap;max-width:320px"><input type="text" id="g-newtag" placeholder="New tag"><button class="btn" data-act="g-tag-add">Add</button></div></div></div></section>`;
+  },
+  data(){
+    const nd = Object.keys(real.days).length, nm = Object.keys(real.reviews).length;
+    const lb = settings.lastBackup ? `Last backup: ${fmtDay(ymd(new Date(settings.lastBackup)),"med")} ${new Date(settings.lastBackup).getFullYear()}` : "No backup yet";
+    let kb = 0; try { kb = Math.round((localStorage.getItem(LS_KEY)||"").length/1024); } catch {}
+    return `<section class="card">
+      <div class="set-row"><div class="lbl">Storage</div><div><div>Saved on this phone only. Deleting the app from your home screen deletes its entries, so keep a backup.</div><div class="muted small" style="margin-top:.3rem">${nd} days and ${nm} monthly reviews · ${kb} KB</div></div></div>
+      <div class="set-row"><div class="lbl">Backup<small>${lb}</small></div><div class="row"><button class="btn primary" data-act="export-json">Export backup (.json)</button><button class="btn" data-act="export-csv">Export daily scores (.csv)</button></div></div>
+      <div class="set-row"><div class="lbl">Restore<small>Entries in the file replace entries for the same dates.</small></div><div><button class="btn" data-act="import">Import backup…</button></div></div>
+      <div class="set-row"><div class="lbl">Sample data<small>A temporary set of made-up entries to explore the charts. Never saved.</small></div><div><button class="btn" data-act="${demo?"demo-off":"demo-on"}">${demo?"Hide sample data":"Preview with sample data"}</button></div></div>
+      <div class="set-row"><div class="lbl" style="color:var(--s1)">Erase everything<small>Deletes all reviews and resets settings. This can't be undone.</small></div>
+        <div class="row" style="flex-wrap:nowrap;max-width:420px"><input type="text" id="erase" placeholder='Type DELETE to confirm' value="${esc(ui.set.erase)}" data-in="erase"><button class="btn danger" data-act="erase" ${ui.set.erase==="DELETE"?"":"disabled"}>Erase</button></div></div>
+    </section>`;
+  }
+};
+
+/* ============ data import/export ============ */
+async function offerFile(filename, data, type){
+  const blob = new Blob([data], {type});
+  try {
+    const file = new File([blob], filename, {type});
+    if (navigator.canShare && navigator.canShare({files:[file]})){ await navigator.share({files:[file], title:filename}); return true; }
+  } catch (e) { if (e && e.name === "AbortError") return false; }
+  try {
+    const url = URL.createObjectURL(blob), a = document.createElement("a");
+    a.href = url; a.download = filename; document.body.append(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 4000); return true;
+  } catch { toast("This browser couldn't save the file."); return false; }
+}
+function backupDue(){ const n = Object.keys(real.days).length; if (n < 14) return false; return !settings.lastBackup || Date.now() - settings.lastBackup > 30*864e5; }
+async function exportJSON(){ const ok = await offerFile(`dayrank-backup-${todayKey()}.json`, JSON.stringify({app:"DayRank", version:1, exported:new Date().toISOString(), settings, days:real.days, reviews:real.reviews}, null, 1), "application/json"); if (ok){ settings.lastBackup = Date.now(); saveSettings(); toast("Backup ready. Save it to Files or iCloud Drive."); render(); } }
+function exportCSV(){
+  const cats = settings.daily; const rows = [["date","overall",...cats.map(c=>c.name),"tags","best","could_be_better","grateful","memorable","journal"]];
+  for (const k of Object.keys(real.days).sort()){ const e = real.days[k], rm = ratingMap(e); rows.push([k, scoreOf(e)!=null?f1(scoreOf(e)):"", ...cats.map(c=>rm[c.id]?norm(rm[c.id].v,rm[c.id].of).toFixed(1):""), (e.tags||[]).join("; "), e.best||"", e.better||"", e.grateful||"", e.memorable||"", e.notes||""]); }
+  const csv = rows.map(r=>r.map(v=>{ const s = String(v); return /[",\n]/.test(s) ? `"${s.replace(/"/g,'""')}"` : s; }).join(",")).join("\n");
+  offerFile(`dayrank-days-${todayKey()}.csv`, csv, "text/csv");
+}
+function importFile(file){
+  const fr = new FileReader();
+  fr.onload = () => {
+    let o; try { o = JSON.parse(fr.result); } catch { toast("That file isn't a DayRank backup (it isn't valid JSON)."); return; }
+    if (!o || typeof o!=="object" || (!o.days && !o.reviews)){ toast("That file doesn't contain DayRank entries."); return; }
+    if (demo) demo = null;
+    let nd = 0, nm = 0;
+    for (const [k,v] of Object.entries(o.days||{})){ if (!/^\d{4}-\d{2}-\d{2}$/.test(k) || !v || typeof v!=="object") continue; const d = {r:Array.isArray(v.r)?v.r.filter(x=>Array.isArray(x)&&typeof x[1]==="number"):[], tags:Array.isArray(v.tags)?v.tags.map(String):[], notes:String(v.notes||"")}; for (const [f] of REFLECT_DAY) d[f] = String(v[f]||""); setDay(k, d); nd++; }
+    for (const [mk,v] of Object.entries(o.reviews||{})){ if (!/^\d{4}-\d{2}$/.test(mk) || !v || typeof v!=="object") continue; setReview(mk, {r:Array.isArray(v.r)?v.r.filter(x=>Array.isArray(x)&&typeof x[1]==="number"):[], notes:v.notes&&typeof v.notes==="object"?v.notes:{}, q:v.q&&typeof v.q==="object"?v.q:{}}); nm++; }
+    if (o.settings){ const keep = settings.seen; settings = mergeSettings(o.settings); settings.seen = [...new Set([...(settings.seen||[]), ...keep])]; applyTheme(); saveSettings(); }
+    toast(`Imported ${nd} days and ${nm} monthly reviews.`); renderChrome(); render();
+  };
+  fr.readAsText(file);
+}
+function eraseAll(){
+  real.days = {}; real.reviews = {}; settings = defaultSettings(); bump(); applyTheme();
+  try { localStorage.removeItem(LS_KEY); } catch {}
+  ui.set.erase = ""; setStatus("saved"); toast("Everything was erased."); renderChrome(); render();
+}
+
+/* ============ sample data ============ */
+function makeDemo(){
+  const rnd = mulberry(20261101), days = {}, reviews = {}, end = todayKey();
+  const notes = ["Long walk after class, cleared my head.","Finally cracked the recursion problem I'd been stuck on.","Slept badly and felt slow all morning.","Dinner with the family, lots of laughing.","Physics mock went better than expected.","Too much time on my phone tonight.","Gym session felt strong.","Quiet day, mostly revision.","Helped a friend with their coding project.","Rainy and a bit flat, but got through the to-do list."];
+  const best = ["Good chat with a friend","Finished a hard problem set","Sunset on the drive home","Got positive feedback from a teacher","Tried a new café","Morning run"];
+  const better = ["Started work too late","Skipped lunch","Stayed up too late","Didn't plan the evening","Got distracted"];
+  const grat = ["My family","Good health","A patient teacher","Friends who check in","Quiet time to think"];
+  let mood = 6.4;
+  for (let i=220;i>=1;i--){
+    const k = addDays(end,-i); if (rnd()<0.13) continue;
+    mood += (rnd()-0.5)*1.3 + (6.9-mood)*0.18;
+    const dow = parse(k).getDay(), wk = (dow===0||dow===6) ? 0.7 : 0, trend = (220-i)/220*0.9;
+    const base = mood + trend;
+    const v = (off, sd) => clamp(Math.round(base+off+(rnd()-0.5)*sd), 1, 10);
+    const r = [["happiness",v(wk,2),10],["productivity",v(-wk+0.3,2.4),10],["mental",v(0.1,1.8),10],["physical",v(-0.3,2.4),10]];
+    if (rnd()<0.06) r.splice(Math.floor(rnd()*4),1);
+    const tags = [];
+    if (r.find(x=>x[0]==="productivity")?.[1]>=8 && rnd()<0.6) tags.push("productive");
+    if (base<5.6 && rnd()<0.6) tags.push("stressful");
+    if (wk && rnd()<0.5) tags.push("relaxing");
+    if (rnd()<0.18) tags.push("social"); if (rnd()<0.2) tags.push("exercise"); if (base<6 && rnd()<0.3) tags.push("tired");
+    const pick = a => a[Math.floor(rnd()*a.length)];
+    days[k] = {r, tags:[...new Set(tags)], best:rnd()<0.5?pick(best):"", better:rnd()<0.3?pick(better):"", grateful:rnd()<0.35?pick(grat):"", memorable:"", notes:rnd()<0.45?pick(notes):"", at:0};
+  }
+  const cmk = end.slice(0,7);
+  for (let i=1;i<=6;i++){ const mk = addMonths(cmk,-i); const rr = Object.keys(days).filter(k=>k.startsWith(mk)).map(k=>scoreOf(days[k])); const b = avg(rr) || 6.5;
+    reviews[mk] = {r:DEF_MONTHLY.map(c=>[c.id, clamp(Math.round(b + (rnd()-0.5)*3 + (c.id==="social"?0.6:c.id==="sleep"?-0.8:0)),1,10), 10]),
+      notes:{discipline:{why:"Kept a steady revision routine most weeks.", improved:"Fewer late starts.", change:"Plan weekends better."}},
+      q:{achievements:pick2(rnd,["Finished a coursework milestone","Kept up the gym routine","Strong mock results"]), best:"Weekend away with family.", struggled:"Sleep schedule.", learned:"Small daily progress adds up.", proud:"Sticking with it on low days.", next:"Get ahead on maths revision."}, at:0}; }
+  return {days, reviews};
+}
+function pick2(rnd, a){ return a[Math.floor(rnd()*a.length)]; }
+
+/* ============ events ============ */
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-act]");
+  if (!b){ if (e.target.id==="sheet") closeSheet(); return; }
+  const a = b.dataset.act, d = b.dataset;
+  if (b.tagName==="A" && a!=="goto-day") e.preventDefault();
+  flushText();
+  const H = ACTIONS[a]; if (H) H(d, b, e);
+});
+const ACTIONS = {
+  "more":()=>{ const p = $("#sheet-panel"); p.innerHTML = `<div class="row between"><h2>More</h2><button class="btn icon ghost" data-act="sheet-close" aria-label="Close">${ico("x")}</button></div><div class="more-sheet">${ROUTES.filter(r=>!["dashboard","review","stats","calendar"].includes(r[0])).map(([id,n,ic])=>`<a href="#${id}">${ico(ic)}${n}</a>`).join("")}</div><div class="side-foot sync" style="padding:0">${statusHTML()}</div>`; $("#sheet").hidden = false; },
+  "sheet-close":closeSheet,
+  "demo-on":()=>{ demo = makeDemo(); bump(); renderChrome(); setStatus(P.status); render(); },
+  "demo-off":()=>{ demo = null; bump(); renderChrome(); setStatus(P.status); render(); },
+  "dash-edit":()=>{ ui.dashEdit = !ui.dashEdit; render(); },
+  "dash-reset":()=>{ settings.dash = {order:Object.keys(WIDGETS), hidden:[]}; saveSettings(); render(); },
+  "w-move":d=>{ const o = settings.dash.order, i = o.indexOf(d.id), j = i + +d.d; if (j<0||j>=o.length) return; [o[i],o[j]] = [o[j],o[i]]; saveSettings(); render(); },
+  "w-hide":d=>{ const h = settings.dash.hidden; const i = h.indexOf(d.id); if (i>=0) h.splice(i,1); else h.push(d.id); saveSettings(); render(); },
+  "goto-day":(d,b,e)=>{ e.preventDefault(); ui.rv.date = d.k; ui.confirmDel = false; go("review"); },
+  "goto-month":d=>{ ui.mo.mk = d.mk; ui.confirmDel = false; go("month"); },
+  "open-day":d=>openDay(d.k),
+  "rv-shift":d=>{ ui.rv.date = addDays(ui.rv.date, +d.d); if (ui.rv.date>todayKey()) ui.rv.date = todayKey(); ui.confirmDel=false; render(); },
+  "rv-today":()=>{ ui.rv.date = todayKey(); ui.confirmDel=false; render(); },
+  "rv-go":d=>{ ui.rv.date = d.k; ui.confirmDel=false; render(); },
+  "rv-rate":d=>{ flushText(); const [k,e] = rvGet(); const cat = activeDaily().find(c=>c.id===d.id); const old = (e.r||[]).find(x=>x[0]===d.id);
+    e.r = (e.r||[]).filter(x=>x[0]!==d.id);
+    const v = d.v==="" ? null : +d.v;
+    if (v!=null && !(old && old[1]===v && (cat.of||10)<=10)) e.r.push([d.id, v, cat.of||10]);
+    e.r.sort((x,y)=>settings.daily.findIndex(c=>c.id===x[0]) - settings.daily.findIndex(c=>c.id===y[0]));
+    setDay(k, e); checkMilestones(); renderKeep(); },
+  "rv-tag":d=>{ flushText(); const [k,e] = rvGet(); e.tags = e.tags||[]; const i = e.tags.indexOf(d.t); if (i>=0) e.tags.splice(i,1); else e.tags.push(d.t); setDay(k,e); renderKeep(); },
+  "rv-del":()=>{ ui.confirmDel = true; render(); },
+  "rv-del-no":()=>{ ui.confirmDel = false; render(); },
+  "rv-del-yes":()=>{ setDay(ui.rv.date, {}); ui.confirmDel = false; toast("Review deleted."); render(); },
+  "mo-shift":d=>{ ui.mo.mk = addMonths(ui.mo.mk, +d.d); ui.confirmDel=false; render(); },
+  "mo-rate":d=>{ flushText(); const [mk,rv] = moGet(); const cat = activeMonthly().find(c=>c.id===d.id); const old = (rv.r||[]).find(x=>x[0]===d.id);
+    rv.r = (rv.r||[]).filter(x=>x[0]!==d.id); const v = d.v==="" ? null : +d.v;
+    if (v!=null && !(old && old[1]===v && (cat.of||10)<=10)) rv.r.push([d.id, v, cat.of||10]);
+    rv.r.sort((x,y)=>settings.monthly.findIndex(c=>c.id===x[0]) - settings.monthly.findIndex(c=>c.id===y[0]));
+    setReview(mk, rv); checkMilestones(); renderKeep(); },
+  "mo-del":()=>{ ui.confirmDel = true; render(); },
+  "mo-del-no":()=>{ ui.confirmDel = false; render(); },
+  "mo-del-yes":()=>{ setReview(ui.mo.mk, {}); ui.confirmDel = false; toast("Monthly review deleted."); render(); },
+  "st-tab":d=>{ ui.st.tab = d.v; render(); },
+  "st-range":d=>{ ui.st.range = d.v; if (d.v==="custom" && !ui.st.from){ ui.st.from = addDays(todayKey(),-59); ui.st.to = todayKey(); } render(); },
+  "st-cat":d=>{ const s = ui.st.hide; s.has(d.id) ? s.delete(d.id) : s.add(d.id); render(); },
+  "st-mocat":d=>{ const s = ui.st.moHide; s.has(d.id) ? s.delete(d.id) : s.add(d.id); render(); },
+  "cal-view":d=>{ ui.cal.view = d.v; render(); },
+  "cal-y":d=>{ ui.cal.year += +d.d; render(); },
+  "cal-m":d=>{ ui.cal.mk = addMonths(ui.cal.mk, +d.d); render(); },
+  "cal-pick":d=>{ ui.cal.sel = d.k; $$(".mday.sel").forEach(x=>x.classList.remove("sel")); $(`.mday[data-k="${d.k}"]`)?.classList.add("sel"); renderCalDetail(); if (innerWidth<860) $("#cal-detail")?.scrollIntoView({behavior:"smooth", block:"start"}); },
+  "jr-type":d=>{ ui.jr.type = d.v; ui.jr.limit = 40; render(); },
+  "jr-tag":d=>{ const s = ui.jr.tags; s.has(d.t) ? s.delete(d.t) : s.add(d.t); render(); },
+  "jr-clear":()=>{ Object.assign(ui.jr, {q:"", tags:new Set(), from:"", to:"", limit:40}); render(); },
+  "jr-more":()=>{ ui.jr.limit += 40; render(); },
+  "jr-del":d=>{ ui.jr.confirm = d.type+d.k; render(); },
+  "jr-del-no":()=>{ ui.jr.confirm = null; render(); },
+  "jr-del-yes":d=>{ if (d.type==="d") setDay(d.k, {}); else setReview(d.k, {}); ui.jr.confirm = null; toast("Entry deleted."); render(); },
+  "set-tab":d=>{ ui.set.tab = d.v; render(); },
+  "ap-mode":d=>{ settings.mode = d.v; applyTheme(); saveSettings(); render(); },
+  "ap-theme":d=>{ settings.theme = d.v; const p = THEMES[d.v].prefers; if (p) settings.mode = p; settings.accent = null; applyTheme(); saveSettings(); render(); },
+  "ap-accent":d=>{ settings.accent = d.v || null; applyTheme(); saveSettings(); render(); },
+  "ap-reset":d=>{ delete settings.custom[effMode()][d.v]; applyTheme(); saveSettings(); render(); },
+  "ap-pal":d=>{ settings.palette = d.v; applyTheme(); saveSettings(); render(); },
+  "ap-card-style":d=>{ settings.cardStyle = d.v; applyTheme(); saveSettings(); render(); },
+  "ap-density":d=>{ settings.density = d.v; applyTheme(); saveSettings(); render(); },
+  "ap-reset-all":()=>{ const s = defaultSettings(); for (const k of ["theme","mode","accent","custom","palette","radius","fontScale","cardStyle","density"]) settings[k] = clone(s[k]); applyTheme(); saveSettings(); render(); },
+  "cat-move":d=>{ const arr = settings[d.kind], act = arr.filter(c=>!c.archived); const i = act.findIndex(c=>c.id===d.id), j = i + +d.d; if (j<0||j>=act.length) return; const A = arr.indexOf(act[i]), B = arr.indexOf(act[j]); [arr[A],arr[B]] = [arr[B],arr[A]]; saveSettings(); render(); },
+  "cat-archive":d=>{ const c = settings[d.kind].find(c=>c.id===d.id); if (c){ c.archived = true; saveSettings(); render(); } },
+  "cat-restore":d=>{ const c = settings[d.kind].find(c=>c.id===d.id); if (c){ c.archived = false; saveSettings(); render(); } },
+  "cat-add":d=>{ const inp = $("#new-"+d.kind); const name = inp.value.trim(); if (!name) return; let id = name.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,24) || "cat"; while (settings[d.kind].some(c=>c.id===id)) id += "-"+uid().slice(0,3);
+    settings[d.kind].push(d.kind==="daily" ? {id, name, q:"", of:10} : {id, name, short:name.split(" ")[0].slice(0,12), of:10}); saveSettings(); render(); },
+  "g-week":d=>{ settings.weekStart = +d.v; bump(); saveSettings(); render(); },
+  "g-tag-del":d=>{ settings.tags = settings.tags.filter(t=>t!==d.t); saveSettings(); render(); },
+  "g-tag-add":()=>{ const v = $("#g-newtag").value.trim().toLowerCase(); if (v && !settings.tags.includes(v)){ settings.tags.push(v); saveSettings(); } render(); },
+  "export-json":exportJSON, "export-csv":exportCSV,
+  "import":()=>$("#import-file").click(),
+  "erase":()=>{ if (ui.set.erase==="DELETE") eraseAll(); }
+};
+function renderKeep(){ const y = window.scrollY; render(); window.scrollTo(0, y); }
+function flushText(){ if (rvTextTimer){ clearTimeout(rvTextTimer); rvTextTimer = null; rvTextSave(); } if (moTextTimer){ clearTimeout(moTextTimer); moTextTimer = null; moTextSave(); } }
+let catTimer = null, apTimer = null;
+document.addEventListener("input", e => {
+  const el = e.target, k = el.dataset && el.dataset.in; if (!k) return;
+  const d = el.dataset;
+  switch (k){
+    case "rv-text": clearTimeout(rvTextTimer); { const st = $("#rv-state"); if (st) st.textContent = "Saving…"; } rvTextTimer = setTimeout(()=>{ rvTextTimer = null; rvTextSave(); }, 700); break;
+    case "mo-text": clearTimeout(moTextTimer); { const st = $("#mo-state"); if (st) st.textContent = "Saving…"; } moTextTimer = setTimeout(()=>{ moTextTimer = null; moTextSave(); }, 700); break;
+    case "jr-q": ui.jr.q = el.value; ui.jr.limit = 40; clearTimeout(catTimer); catTimer = setTimeout(()=>{ const pos = el.selectionStart; render(); const n = $("#jr-q"); if (n){ n.focus(); try { n.setSelectionRange(pos,pos); } catch {} } }, 220); break;
+    case "erase": ui.set.erase = el.value; { const b = $('[data-act="erase"]'); if (b) b.disabled = el.value!=="DELETE"; } break;
+    case "ap-radius": settings.radius = +el.value; applyTheme(); el.closest(".set-row").querySelector("small").textContent = el.value+"px"; clearTimeout(apTimer); apTimer = setTimeout(saveSettings, 400); break;
+    case "ap-font": settings.fontScale = +el.value; applyTheme(); el.closest(".set-row").querySelector("small").textContent = Math.round(el.value*100)+"%"; clearTimeout(apTimer); apTimer = setTimeout(saveSettings, 400); break;
+    case "ap-accent": settings.accent = el.value; applyTheme(); clearTimeout(apTimer); apTimer = setTimeout(saveSettings, 400); break;
+    case "ap-bg": case "ap-card": settings.custom[effMode()][k==="ap-bg"?"bg":"card"] = el.value; applyTheme(); clearTimeout(apTimer); apTimer = setTimeout(saveSettings, 400); break;
+    case "cat-name": case "cat-q": case "cat-short": { const kind = d.kind || (k==="cat-q"?"daily":"monthly"); const c = settings[kind].find(c=>c.id===d.id); if (!c) break;
+      if (k==="cat-name") c.name = el.value.slice(0,60) || c.name; else if (k==="cat-q") c.q = el.value.slice(0,120); else c.short = el.value.slice(0,16);
+      clearTimeout(catTimer); catTimer = setTimeout(saveSettings, 600); break; }
+  }
+});
+document.addEventListener("change", e => {
+  const el = e.target, k = el.dataset && el.dataset.in;
+  if (el.id==="import-file"){ const f = el.files && el.files[0]; if (f) importFile(f); el.value = ""; return; }
+  if (!k) return; const d = el.dataset;
+  switch (k){
+    case "rv-date": if (el.value){ ui.rv.date = el.value > todayKey() ? todayKey() : el.value; ui.confirmDel=false; render(); } break;
+    case "rv-range": { const [kk,ev] = rvGet(); const cat = activeDaily().find(c=>c.id===d.id); ev.r = (ev.r||[]).filter(x=>x[0]!==d.id); ev.r.push([d.id, +el.value, cat.of]); setDay(kk, ev); renderKeep(); break; }
+    case "mo-range": { const [mk,rv] = moGet(); const cat = activeMonthly().find(c=>c.id===d.id); rv.r = (rv.r||[]).filter(x=>x[0]!==d.id); rv.r.push([d.id, +el.value, cat.of]); setReview(mk, rv); renderKeep(); break; }
+    case "rv-newtag": break;
+    case "st-ma": ui.st.ma = el.checked; render(); break;
+    case "st-from": ui.st.from = el.value; render(); break;
+    case "st-to": ui.st.to = el.value; render(); break;
+    case "st-a": ui.st.a = el.value; render(); break;
+    case "st-b": ui.st.b = el.value; render(); break;
+    case "jr-from": ui.jr.from = el.value; render(); break;
+    case "jr-to": ui.jr.to = el.value; render(); break;
+    case "cat-of": { const c = settings[d.kind].find(c=>c.id===d.id); if (c){ c.of = +el.value; saveSettings(); } break; }
+    case "g-daystart": settings.dayStart = +el.value; saveSettings(); render(); break;
+    case "cat-name": case "cat-q": case "cat-short": render(); break;
+  }
+});
+document.addEventListener("keydown", e => {
+  if (e.key==="Escape" && !$("#sheet").hidden) closeSheet();
+  const el = e.target;
+  if (e.key==="Enter" && el.id==="rv-newtag"){ e.preventDefault(); const v = el.value.trim().toLowerCase().slice(0,30); if (!v) return; flushText(); const [k,ev] = rvGet(); ev.tags = [...new Set([...(ev.tags||[]), v])]; if (!settings.tags.includes(v)){ settings.tags.push(v); saveSettings(); } setDay(k, ev); renderKeep(); $("#rv-newtag")?.focus(); }
+  if (e.key==="Enter" && el.id==="g-newtag"){ e.preventDefault(); ACTIONS["g-tag-add"](); }
+  if (e.key==="Enter" && /^new-(daily|monthly)$/.test(el.id)){ e.preventDefault(); ACTIONS["cat-add"]({kind:el.id.slice(4)}); }
+});
+window.addEventListener("pagehide", ()=>{ flushText(); if (P.timer){ clearTimeout(P.timer); flush(); } });
+document.addEventListener("visibilitychange", ()=>{ if (document.visibilityState==="hidden"){ flushText(); if (P.timer){ clearTimeout(P.timer); flush(); } } });
+let rzT = null, lastW = innerWidth;
+window.addEventListener("resize", ()=>{ clearTimeout(rzT); rzT = setTimeout(()=>{ if (Math.abs(innerWidth-lastW) < 40) return; lastW = innerWidth; if (["dashboard","stats","calendar"].includes(ui.route)) render(); }, 200); });
+try { matchMedia("(prefers-color-scheme: dark)").addEventListener("change", ()=>{ if (settings.mode==="system"){ applyTheme(); render(); } }); } catch {}
+new MutationObserver(()=>{ if (settings.mode==="system"){ applyTheme(); if (P.ready) render(); } }).observe(document.documentElement, {attributes:true, attributeFilter:["data-theme"]});
+
+boot();
+</script>
+</body>
+</html>
